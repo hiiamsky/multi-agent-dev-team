@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using VeggieAlly.Application.LineEvents.ProcessAudio;
 using VeggieAlly.Application.LineEvents.ProcessText;
 using VeggieAlly.Domain.Models.Line;
 using VeggieAlly.WebAPI.Controllers;
@@ -42,7 +43,7 @@ public sealed class WebhookControllerTests
     }
 
     [Fact]
-    public async Task Receive_TextMessage_DispatchesCommand()
+    public async Task Receive_TextMessage_DispatchesTextCommand()
     {
         var textEvent = new LineEvent(
             Type: "message",
@@ -60,7 +61,25 @@ public sealed class WebhookControllerTests
     }
 
     [Fact]
-    public async Task Receive_NonTextMessage_SkipsEvent()
+    public async Task Receive_AudioMessage_DispatchesAudioCommand()
+    {
+        var audioEvent = new LineEvent(
+            Type: "message",
+            ReplyToken: "reply-token-123",
+            Source: new LineEventSource("user", "U123"),
+            Message: new LineMessage("audio-msg-001", "audio", null));
+        var payload = new LineWebhookPayload([audioEvent]);
+
+        var result = await _controller.Receive(payload);
+
+        Assert.IsType<OkResult>(result);
+        await _mediator.Received(1).Send(
+            Arg.Is<ProcessAudioMessageCommand>(c => c.Event == audioEvent),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Receive_NonSupportedMessage_SkipsEvent()
     {
         var imageEvent = new LineEvent(
             Type: "message",
@@ -74,6 +93,9 @@ public sealed class WebhookControllerTests
         Assert.IsType<OkResult>(result);
         await _mediator.DidNotReceive().Send(
             Arg.Any<ProcessTextMessageCommand>(),
+            Arg.Any<CancellationToken>());
+        await _mediator.DidNotReceive().Send(
+            Arg.Any<ProcessAudioMessageCommand>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -96,7 +118,7 @@ public sealed class WebhookControllerTests
     }
 
     [Fact]
-    public async Task Receive_HandlerThrows_StillReturns200()
+    public async Task Receive_TextHandlerThrows_StillReturns200()
     {
         var textEvent = new LineEvent(
             Type: "message",
@@ -109,6 +131,26 @@ public sealed class WebhookControllerTests
             Arg.Any<ProcessTextMessageCommand>(),
             Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Handler 爆了"));
+
+        var result = await _controller.Receive(payload);
+
+        Assert.IsType<OkResult>(result);
+    }
+
+    [Fact]
+    public async Task Receive_AudioHandlerThrows_StillReturns200()
+    {
+        var audioEvent = new LineEvent(
+            Type: "message",
+            ReplyToken: "reply-token-123",
+            Source: new LineEventSource("user", "U123"),
+            Message: new LineMessage("audio-msg-001", "audio", null));
+        var payload = new LineWebhookPayload([audioEvent]);
+
+        _mediator.Send(
+            Arg.Any<ProcessAudioMessageCommand>(),
+            Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Audio Handler 爆了"));
 
         var result = await _controller.Receive(payload);
 
