@@ -102,6 +102,9 @@ SA/SD 藍圖交付後，前端 PG、後端 PG、DBA 三者**同時啟動**，互
 | 後端 PG | 前端 PG | 前端 Payload 是否符合 Request DTO、是否有注入風險 |
 | 後端 PG | DBA | Dapper SQL 與 Schema/索引是否契合、Join 效率 |
 | DBA | 後端 PG | SQL 語法是否命中索引、是否有 Full Table Scan 或 Table Lock 風險 |
+| 後端 PG | 前端 PG | 前端是否正確處理 Token 傳遞、是否有 XSS 風險點 |
+| 後端 PG | DBA | DB 帳號權限是否符合最小權限原則 |
+| DBA | 後端 PG | 敏感欄位的存取是否使用了對應的加密/雜湊處理 |
 
 **檢視結果**：
 - 吻合 → 提交 QA/QC
@@ -119,6 +122,10 @@ QA/QC 驗證失敗時，依問題類型精準退回：
 | Schema 導致 Deadlock / 連線池耗盡 | DBA |
 | 規格本身模糊或矛盾 | SA/SD |
 | 需求本身有問題 | Orchestrator |
+| 安全缺陷 Critical/High（存取控制/注入/認證） | 溯源至對應 Agent（後端 PG / 前端 PG），阻擋合併 |
+| 安全缺陷 Medium | 標記於 PR 描述，由人類決定是否阻擋 |
+| DB 權限或敏感欄位不符安全設計 | DBA |
+| 安全設計缺失或與安全標籤不符 | SA/SD |
 
 **退回必須附帶**：
 1. 錯誤日誌或重現步驟
@@ -136,7 +143,7 @@ project-root/
 ├── docs/
 │   ├── requirements/      ← Orchestrator：精煉後的需求文件
 │   ├── specs/             ← SA/SD：標準化藍圖（API Contract + Schema + 時序）
-│   └── reviews/           ← QA/QC：驗證報告與批判回饋
+│   └── reviews/           ← QA/QC：驗證報告、安全驗證報告與批判回饋
 ├── src/
 │   ├── frontend/          ← 前端 PG：UI 元件、路由、API Client
 │   └── backend/           ← 後端 PG：Controller、CQRS、Domain、Infrastructure
@@ -197,6 +204,42 @@ QA/QC 或跨域檢視發現問題時，將 Review Critique 寫入 `docs/reviews/
 5. **精準溯源**：所有退回必須指向具體位置，不允許模糊描述
 6. **職責隔離**：每個 Agent 只做自己的事，跨域問題透過檢視機制處理
 7. **檔案即通訊**：Agent 之間不直接傳訊，所有交接透過約定目錄的檔案讀寫完成
+8. **安全左移**：安全不是 QA/QC 的專屬職責——每個 Agent 在其階段執行對應的安全實踐，缺陷越早發現修正成本越低
+9. **預設安全**：未明確標註為公開的端點一律要求認證；未明確標註為安全的輸入一律視為不可信
+10. **機敏資訊零硬編碼**：所有 Agent 產出的任何檔案中，禁止出現硬編碼的密碼、Token、連線字串、加密金鑰
+
+## SSDLC 對照表
+
+本團隊的 Secure SDLC 遵循 NIST SSDF (SP 800-218) 框架，並以 OWASP Top 10:2025 作為具體威脅對照。
+
+### Agent × NIST SSDF × OWASP 交叉對照
+
+| 階段 | Agent | NIST SSDF | 安全職責 | OWASP 覆蓋 |
+|------|-------|-----------|----------|------------|
+| 需求淨化 | Orchestrator | PO.1 安全需求 | 標註安全標籤（認證/敏感資料/外部輸入/不可逆操作） | — |
+| 架構設計 | SA/SD | PW.1 安全設計 | 信任邊界分析、認證授權策略、敏感資料處理、輸入驗證規則、不可逆操作防護 | A01, A04, A07 |
+| 後端實作 | 後端 PG | PW.5 安全編碼 | 存取控制、參數化查詢、安全日誌、例外處理、加密實作 | A01, A04, A05, A07, A09, A10 |
+| 前端實作 | 前端 PG | PW.5 安全編碼 | XSS 防護、Token 安全儲存、CSP 相容、敏感資料不落地 | A01, A05, A07 |
+| 資料庫 | DBA | PW.5 安全編碼 | 最小權限、敏感欄位策略、稽核欄位 | A01, A04 |
+| 驗證 | QA/QC | PW.8 安全測試, RV.1 漏洞識別 | OWASP 安全檢查清單、安全缺陷分級、安全阻擋機制 | A01, A04, A05, A07, A09, A10 |
+| 交付 | Orchestrator | RV.2 漏洞回應 | 安全缺陷嚴重度評估、阻擋/放行決策 | — |
+
+## 安全交接協議
+
+安全需求在 Agent 之間的傳遞採用「逐層攜帶，逐層細化」原則：
+
+| 上游 | 下游 | 安全交接物 | 位置 |
+|------|------|-----------|------|
+| Orchestrator → SA/SD | | 安全標籤（勾選項） | 嵌入 `docs/requirements/{feature}.md` 的「安全標籤」區塊 |
+| SA/SD → 後端 PG / 前端 PG / DBA | | 安全設計章節（認證策略、加密策略、輸入驗證規則、端點權限矩陣） | 嵌入 `docs/specs/{feature}-spec.md` 的「安全設計」章節 |
+| 後端 PG / 前端 PG / DBA → QA/QC | | 程式碼與 Schema 實作 | `src/` + `db/` 目錄（QA/QC 依安全檢查清單審查） |
+| QA/QC → Orchestrator | | 安全驗證結果（通過/阻擋 + 缺陷清單） | 嵌入 `docs/reviews/{feature}-review.md` 的「安全驗證結果」區塊 |
+
+### 斷鏈防護
+
+- 若 Orchestrator 精煉需求中安全標籤有勾選項目，但 SA/SD 藍圖缺少安全設計章節 → QA/QC 視為 Critical 缺陷，退回 SA/SD
+- 若 SA/SD 安全設計章節定義了加密欄位，但 DBA Schema 未使用對應型別 → QA/QC 視為 High 缺陷，退回 DBA
+- 若 SA/SD 定義了端點權限矩陣，但後端程式碼缺少授權檢查 → QA/QC 視為 Critical 缺陷，退回後端 PG
 
 ## Git Commit Message 規範
 

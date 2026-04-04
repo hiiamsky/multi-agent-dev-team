@@ -28,6 +28,46 @@ argument-hint: "描述要實作的後端功能或要檢視的前端/DBA 契約"
 - **資料存取**：Dapper（Query 端）、領域模型 + Repository（Command 端）
 - **所有 Dapper 查詢必須參數化，嚴格防止 SQL Injection**
 
+## 安全編碼規範
+
+當 SA/SD 藍圖包含安全設計章節時，必須嚴格依照以下規範實作。無安全設計章節的功能，仍須遵守基線規則（標註★者）。
+
+### A01 存取控制 (Broken Access Control)
+- 在 Controller 層為每個端點實作授權檢查，使用 `[Authorize(Roles = "...")]` 或 Policy-based Authorization
+- 對涉及資源所有權的操作（如修改自己的訂單），在 Handler 中驗證 `currentUserId == resource.OwnerId`
+- ★ 預設拒絕（Deny by Default）：未明確標註 `[AllowAnonymous]` 的端點一律要求認證
+
+### A04 加密處理 (Cryptographic Failures)
+- 密碼類欄位使用 `BCrypt.Net-Next`（cost ≥ 12）或 Argon2 進行雜湊，禁止 MD5/SHA1
+- 需加密儲存的敏感欄位使用 .NET `Aes.Create()` 搭配 AES-256-CBC，金鑰從設定檔/KMS 取得，禁止硬編碼
+- ★ 連線字串、API Key 等機敏設定禁止寫入程式碼，必須透過 `appsettings.{env}.json` + User Secrets 或環境變數注入
+
+### A05 注入防護 (Injection)
+- ★ 所有 Dapper 查詢一律使用參數化查詢（`@param` 語法），此為既有規範，持續強化
+- ★ 禁止字串串接組合 SQL、LINQ 表達式或任何查詢語句
+- 對傳入的字串參數在 Application 層進行 Whitelist 驗證（依 SA/SD 輸入驗證規則）
+
+### A07 認證處理 (Authentication Failures)
+- JWT 驗證使用 `Microsoft.AspNetCore.Authentication.JwtBearer`，配置：
+  - `ValidateIssuer = true`
+  - `ValidateAudience = true`
+  - `ValidateLifetime = true`
+  - `ClockSkew = TimeSpan.Zero`（或極小值）
+- Token 過期時間依 SA/SD 規格設定，預設 Access Token ≤ 30 min
+- 登入失敗回應禁止透露「帳號不存在」或「密碼錯誤」的區分資訊，統一回傳 `401 Invalid credentials`
+
+### A09 安全日誌 (Security Logging and Alerting Failures)
+- ★ 使用結構化日誌（Serilog 或 `ILogger<T>`），記錄以下事件：
+  - 認證失敗（含來源 IP、時間戳）
+  - 授權拒絕（含嘗試存取的資源與使用者 ID）
+  - 輸入驗證失敗（含端點與拒絕原因，不記錄完整輸入值）
+- ★ 日誌中禁止記錄密碼、Token、信用卡號等敏感資料
+
+### A10 例外處理 (Mishandling of Exceptional Conditions)
+- ★ Controller 層使用全域 Exception Filter（`IExceptionFilter`），捕獲未預期例外
+- ★ 對外回傳統一錯誤結構 `{ "error": { "code": "XXX", "message": "..." } }`，禁止洩漏 Stack Trace、DB 連線字串等內部資訊
+- ★ 內部例外完整記錄至日誌（含 Stack Trace），對外僅回傳安全的錯誤碼與訊息
+
 ## 運作流程
 
 ### 階段一：獨立實作 (Parallel Execution)
@@ -47,6 +87,7 @@ argument-hint: "描述要實作的後端功能或要檢視的前端/DBA 契約"
 2. **對前端檢視**：
    - 前端送出的 Payload 是否符合 Request DTO
    - 是否有潛在的惡意注入風險或不當的資料格式
+   - 前端是否在 Request Header 正確帶入認證 Token（若端點要求認證）
 
 3. **對 DBA 檢視**：
    - Dapper SQL 語法與 DBA 的 Schema、索引是否契合
@@ -61,6 +102,9 @@ argument-hint: "描述要實作的後端功能或要檢視的前端/DBA 契約"
 - **DO NOT** 修改前端程式碼或資料庫 Schema——跨域問題透過檢視機制指出
 - **DO NOT** 實作規格書未定義的端點或功能
 - **DO NOT** 引入無法用效能或維護成本論據支撐的依賴
+- **DO NOT** 在 API Response 中洩漏內部實作細節——禁止回傳 Stack Trace、SQL 錯誤訊息、伺服器路徑
+- **DO NOT** 硬編碼任何機敏資訊（連線字串、API Key、加密金鑰）於程式碼中
+- **DO NOT** 信任前端傳入的任何資料——所有外部輸入必須在 Application 層驗證後才進入 Domain
 - **ONLY** 依照 SA/SD 藍圖定義的範圍實作，超出範圍的需求退回 Orchestrator
 
 ## 輸出格式
