@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using VeggieAlly.Application.LineEvents.ProcessAudio;
 using VeggieAlly.Application.LineEvents.ProcessText;
 using VeggieAlly.Domain.Models.Line;
 using VeggieAlly.WebAPI.Filters;
@@ -31,11 +32,9 @@ public sealed class WebhookController : ControllerBase
 
         foreach (var lineEvent in payload.Events)
         {
-            // 過濾條件：僅處理 message 類型的 text 事件
-            if (lineEvent.Type != "message" || lineEvent.Message?.Type != "text")
+            if (lineEvent.Type != "message")
             {
-                _logger.LogDebug("跳過非文字訊息事件: Type={EventType}, MessageType={MessageType}", 
-                    lineEvent.Type, lineEvent.Message?.Type);
+                _logger.LogDebug("跳過非 message 事件: Type={EventType}", lineEvent.Type);
                 continue;
             }
 
@@ -48,9 +47,20 @@ public sealed class WebhookController : ControllerBase
 
             try
             {
-                var command = new ProcessTextMessageCommand(lineEvent);
-                await _mediator.Send(command);
-                _logger.LogInformation("成功處理文字訊息事件");
+                switch (lineEvent.Message?.Type)
+                {
+                    case "text":
+                        await _mediator.Send(new ProcessTextMessageCommand(lineEvent));
+                        _logger.LogInformation("成功處理文字訊息事件");
+                        break;
+                    case "audio":
+                        await _mediator.Send(new ProcessAudioMessageCommand(lineEvent));
+                        _logger.LogInformation("成功處理語音訊息事件");
+                        break;
+                    default:
+                        _logger.LogDebug("跳過不支援的訊息類型: {MessageType}", lineEvent.Message?.Type);
+                        break;
+                }
             }
             catch (Exception ex)
             {

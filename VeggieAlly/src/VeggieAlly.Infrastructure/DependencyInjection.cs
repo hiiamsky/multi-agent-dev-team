@@ -23,6 +23,10 @@ public static class DependencyInjection
         {
             client.BaseAddress = new Uri("https://api.line.me");
         });
+        services.AddHttpClient<ILineContentService, LineContentService>((sp, client) =>
+        {
+            client.BaseAddress = new Uri("https://api-data.line.me");
+        });
 
         // ── AI: 根據 AI:Provider 切換後端 ──
         var aiProvider = configuration.GetValue<string>("AI:Provider") ?? "gemini";
@@ -56,6 +60,9 @@ public static class DependencyInjection
 
         // ── Flex Message Builder ──
         services.AddSingleton<IFlexMessageBuilder, FlexMessageBuilder>();
+
+        // ── Validation Reply Pipeline ──
+        services.AddScoped<IValidationReplyService, ValidationReplyService>();
 
         return services;
     }

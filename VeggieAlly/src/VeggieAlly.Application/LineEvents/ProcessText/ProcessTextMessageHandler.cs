@@ -1,13 +1,9 @@
-using System.Text;
-using System.Text.Json;
 using MediatR;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using VeggieAlly.Application.Common.Interfaces;
 using VeggieAlly.Application.Prompts;
 using VeggieAlly.Domain.Abstractions;
-using VeggieAlly.Domain.Models.Parsing;
-using VeggieAlly.Domain.ValueObjects;
 
 namespace VeggieAlly.Application.LineEvents.ProcessText;
 
@@ -15,24 +11,18 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
 {
     private readonly IChatClient _chatClient;
     private readonly ILineReplyService _lineReplyService;
-    private readonly IVegetablePricingService _pricingService;
-    private readonly IPriceValidationService _validationService;
-    private readonly IFlexMessageBuilder _flexMessageBuilder;
+    private readonly IValidationReplyService _validationReplyService;
     private readonly ILogger<ProcessTextMessageHandler> _logger;
 
     public ProcessTextMessageHandler(
         IChatClient chatClient,
         ILineReplyService lineReplyService,
-        IVegetablePricingService pricingService,
-        IPriceValidationService validationService,
-        IFlexMessageBuilder flexMessageBuilder,
+        IValidationReplyService validationReplyService,
         ILogger<ProcessTextMessageHandler> logger)
     {
         _chatClient = chatClient;
         _lineReplyService = lineReplyService;
-        _pricingService = pricingService;
-        _validationService = validationService;
-        _flexMessageBuilder = flexMessageBuilder;
+        _validationReplyService = validationReplyService;
         _logger = logger;
     }
 
@@ -52,9 +42,6 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             return;
         }
 
-        // ── Step 1: 呼叫 Gemini API ──
-        List<ValidatedVegetableItem>? validatedItems = null;
-        string? fallbackText = null;
         try
         {
             var messages = new ChatMessage[]
@@ -64,171 +51,22 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             };
 
             var completion = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-            var responseContent = completion?.Text?.Trim();
+            var llmResponse = completion?.Text?.Trim();
 
-            // LLM 有時會用 markdown 代碼框包裹 JSON，去除之
-            responseContent = StripMarkdownCodeFence(responseContent);
-
-            if (string.IsNullOrWhiteSpace(responseContent))
-            {
-                _logger.LogWarning("Gemini 回傳空內容");
-                fallbackText = "解析失敗，請重新輸入";
-            }
-            else if (!IsValidJson(responseContent))
-            {
-                _logger.LogWarning("Gemini 回傳非 JSON 格式: {Content}", responseContent);
-                fallbackText = "解析失敗，請重新輸入";
-            }
-            else
-            {
-                // ── Step 1.5: 解析 JSON 並進行價格驗證 ──
-                validatedItems = await ProcessValidationAsync(responseContent, cancellationToken);
-                if (validatedItems is null)
-                    fallbackText = "解析失敗，請重新輸入";
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Gemini API 呼叫失敗");
-            fallbackText = "系統忙碌中，請稍後重試";
-        }
-
-        // ── Step 2: 回覆 LINE 使用者（獨立 try-catch） ──
-        try
-        {
-            if (validatedItems is not null)
-            {
-                try
-                {
-                    var bubble = _flexMessageBuilder.BuildBubble(validatedItems);
-                    var okCount = validatedItems.Count(i => i.Validation.Status == ValidationStatus.Ok);
-                    var anomalyCount = validatedItems.Count - okCount;
-                    var altText = $"📋 報價驗證結果：{okCount}項正常, {anomalyCount}項異常";
-                    await _lineReplyService.ReplyFlexAsync(replyToken, altText, bubble, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Flex Message 建構失敗，降級為純文字回覆");
-                    await _lineReplyService.ReplyTextAsync(replyToken, GenerateValidationReply(validatedItems), cancellationToken);
-                }
-            }
-            else
-            {
-                await _lineReplyService.ReplyTextAsync(replyToken, fallbackText!, cancellationToken);
-            }
+            await _validationReplyService.ProcessLlmResponseAndReplyAsync(llmResponse, replyToken, cancellationToken);
             _logger.LogInformation("成功處理文字訊息並回覆");
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "LINE Reply 失敗，無法回覆使用者");
-        }
-    }
-
-    private async Task<List<ValidatedVegetableItem>?> ProcessValidationAsync(string jsonContent, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // 反序列化為物件（items 陣列）
-            var parseResult = JsonSerializer.Deserialize<ParseResult>(jsonContent, new JsonSerializerOptions
+            _logger.LogError(ex, "Gemini API 呼叫失敗");
+            try
             {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            });
-
-            if (parseResult?.Items == null || parseResult.Items.Count == 0)
-            {
-                _logger.LogWarning("JSON 反序列化成功但無有效品項");
-                return null;
+                await _lineReplyService.ReplyTextAsync(replyToken, "系統忙碌中，請稍後重試", cancellationToken);
             }
-
-            // 走訪每個 item，查歷史價 + 驗證
-            var validatedItems = new List<ValidatedVegetableItem>();
-            
-            foreach (var item in parseResult.Items)
+            catch (Exception replyEx)
             {
-                // 查詢歷史價格
-                var historicalPrice = await _pricingService.GetHistoricalAvgPriceAsync(item.Name, cancellationToken: cancellationToken);
-                
-                // 執行價格驗證
-                var validation = _validationService.Validate(item.BuyPrice, item.SellPrice, historicalPrice);
-                
-                // 組合為 ValidatedVegetableItem
-                var validatedItem = new ValidatedVegetableItem(
-                    item.Name,
-                    item.IsNew,
-                    item.BuyPrice,
-                    item.SellPrice,
-                    item.Quantity,
-                    item.Unit,
-                    historicalPrice,
-                    validation
-                );
-                
-                validatedItems.Add(validatedItem);
+                _logger.LogWarning(replyEx, "LINE Reply 失敗，無法回覆使用者");
             }
-
-            // 產生回覆文字：用 🟢/🔴 標示每個品項的驗證結果
-            return validatedItems;
         }
-        catch (JsonException ex)
-        {
-            _logger.LogError(ex, "JSON 反序列化失敗: {Json}", jsonContent);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "價格驗證過程發生錯誤");
-            return null;
-        }
-    }
-
-    private static string GenerateValidationReply(List<ValidatedVegetableItem> validatedItems)
-    {
-        var reply = new StringBuilder("📋 報價驗證結果：\n");
-
-        foreach (var item in validatedItems)
-        {
-            var icon = item.Validation.Status == ValidationStatus.Ok ? "🟢" : "🔴";
-            var warning = item.Validation.Status != ValidationStatus.Ok && !string.IsNullOrEmpty(item.Validation.Message)
-                ? $" ⚠️ {item.Validation.Message}"
-                : "";
-
-            reply.AppendLine($"{icon} {item.Name}｜進${item.BuyPrice} 售${item.SellPrice} x{item.Quantity}{item.Unit}{warning}");
-        }
-
-        return reply.ToString();
-    }
-
-    private static bool IsValidJson(string text)
-    {
-        try
-        {
-            using var doc = JsonDocument.Parse(text);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
-    }
-
-    private static string? StripMarkdownCodeFence(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return text;
-
-        var trimmed = text.Trim();
-        if (trimmed.StartsWith("```"))
-        {
-            // 去除第一行 ```json 或 ```
-            var firstNewLine = trimmed.IndexOf('\n');
-            if (firstNewLine >= 0)
-                trimmed = trimmed[(firstNewLine + 1)..];
-
-            // 去除最後的 ```
-            if (trimmed.EndsWith("```"))
-                trimmed = trimmed[..^3].TrimEnd();
-        }
-
-        return trimmed;
     }
 }
