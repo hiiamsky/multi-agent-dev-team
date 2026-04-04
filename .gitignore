@@ -1,0 +1,34 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+
+# Node
+node_modules/
+dist/
+.env
+.env.*
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
+.docker/
+**/Dockerfile.local
