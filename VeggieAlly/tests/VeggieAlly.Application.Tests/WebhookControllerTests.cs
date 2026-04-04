@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using VeggieAlly.Application.Common.Interfaces;
 using VeggieAlly.Application.LineEvents.ProcessAudio;
 using VeggieAlly.Application.LineEvents.ProcessText;
+using VeggieAlly.Application.Menu.Publish;
 using VeggieAlly.Domain.Models.Line;
 using VeggieAlly.WebAPI.Controllers;
 
@@ -13,12 +15,14 @@ namespace VeggieAlly.Application.Tests;
 public sealed class WebhookControllerTests
 {
     private readonly IMediator _mediator = Substitute.For<IMediator>();
+    private readonly ITenantConfigService _tenantConfigService = Substitute.For<ITenantConfigService>();
     private readonly ILogger<WebhookController> _logger = Substitute.For<ILogger<WebhookController>>();
     private readonly WebhookController _controller;
 
     public WebhookControllerTests()
     {
-        _controller = new WebhookController(_mediator, _logger);
+        _tenantConfigService.GetTenantId().Returns("default");
+        _controller = new WebhookController(_mediator, _tenantConfigService, _logger);
     }
 
     [Fact]
@@ -151,6 +155,65 @@ public sealed class WebhookControllerTests
             Arg.Any<ProcessAudioMessageCommand>(),
             Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Audio Handler 爆了"));
+
+        var result = await _controller.Receive(payload);
+
+        Assert.IsType<OkResult>(result);
+    }
+
+    [Fact]
+    public async Task Receive_PostbackPublish_DispatchesPublishCommand()
+    {
+        var postbackEvent = new LineEvent(
+            Type: "postback",
+            ReplyToken: "reply-token-123",
+            Source: new LineEventSource("user", "U123"),
+            Message: null,
+            Postback: new LinePostback("action=publish"));
+        var payload = new LineWebhookPayload([postbackEvent]);
+
+        var result = await _controller.Receive(payload);
+
+        Assert.IsType<OkResult>(result);
+        await _mediator.Received(1).Send(
+            Arg.Is<PublishMenuCommand>(c => c.TenantId == "default" && c.LineUserId == "U123"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Receive_PostbackUnknownAction_Skips()
+    {
+        var postbackEvent = new LineEvent(
+            Type: "postback",
+            ReplyToken: "reply-token-123",
+            Source: new LineEventSource("user", "U123"),
+            Message: null,
+            Postback: new LinePostback("action=unknown_thing"));
+        var payload = new LineWebhookPayload([postbackEvent]);
+
+        var result = await _controller.Receive(payload);
+
+        Assert.IsType<OkResult>(result);
+        await _mediator.DidNotReceive().Send(
+            Arg.Any<PublishMenuCommand>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Receive_PostbackHandlerThrows_StillReturns200()
+    {
+        var postbackEvent = new LineEvent(
+            Type: "postback",
+            ReplyToken: "reply-token-123",
+            Source: new LineEventSource("user", "U123"),
+            Message: null,
+            Postback: new LinePostback("action=publish"));
+        var payload = new LineWebhookPayload([postbackEvent]);
+
+        _mediator.Send(
+            Arg.Any<PublishMenuCommand>(),
+            Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Publish Handler 爆了"));
 
         var result = await _controller.Receive(payload);
 
