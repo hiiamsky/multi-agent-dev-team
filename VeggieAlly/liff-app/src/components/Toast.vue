@@ -16,7 +16,7 @@ type ToastType = 'success' | 'error' | 'warning' | 'info'
 const isVisible = ref(false)
 const message = ref('')
 const type = ref<ToastType>('info')
-let hideTimer: NodeJS.Timeout | null = null
+let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 function show(msg: string, toastType: ToastType = 'info', duration = 3000): void {
   message.value = msg
