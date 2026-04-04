@@ -46,7 +46,13 @@ public static class DependencyInjection
         var redisConnectionString = configuration.GetValue<string>("Redis:ConnectionString");
         if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
-            services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+            var redisOptions = ConfigurationOptions.Parse(redisConnectionString);
+            redisOptions.AbortOnConnectFail = false;
+            redisOptions.ConnectRetry = 1;
+            redisOptions.ConnectTimeout = 5000;
+            redisOptions.AsyncTimeout = 5000;
+
+            services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisOptions));
             services.AddScoped<IDraftSessionStore, RedisDraftSessionStore>();
         }
         else
