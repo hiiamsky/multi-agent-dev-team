@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\VeggieAlly.Application\VeggieAlly.Application.csproj" />
+    <ProjectReference Include="..\..\src\VeggieAlly.Infrastructure\VeggieAlly.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\VeggieAlly.WebAPI\VeggieAlly.WebAPI.csproj" />
   </ItemGroup>
 
 </Project>
