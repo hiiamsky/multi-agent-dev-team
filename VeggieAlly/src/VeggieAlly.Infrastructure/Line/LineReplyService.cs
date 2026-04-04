@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VeggieAlly.Domain.Abstractions;
@@ -39,23 +40,56 @@ public sealed class LineReplyService : ILineReplyService
             _logger.LogWarning("回覆文字超過 5000 字元，已截斷");
         }
 
+        var requestPayload = new
+        {
+            replyToken = replyToken,
+            messages = new[]
+            {
+                new { type = "text", text = text }
+            }
+        };
+
+        await SendReplyAsync(requestPayload, ct);
+    }
+
+    public async Task ReplyFlexAsync(string replyToken, string altText, object flexContent, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(replyToken))
+        {
+            _logger.LogWarning("ReplyToken 為空，無法回覆 Flex");
+            return;
+        }
+
+        var requestPayload = new
+        {
+            replyToken = replyToken,
+            messages = new object[]
+            {
+                new
+                {
+                    type = "flex",
+                    altText = altText ?? "報價驗證結果",
+                    contents = flexContent
+                }
+            }
+        };
+
+        await SendReplyAsync(requestPayload, ct);
+    }
+
+    private async Task SendReplyAsync(object requestPayload, CancellationToken ct)
+    {
         try
         {
-            var requestPayload = new
-            {
-                replyToken = replyToken,
-                messages = new[]
-                {
-                    new { type = "text", text = text }
-                }
-            };
-
             using var request = new HttpRequestMessage(HttpMethod.Post, "/v2/bot/message/reply");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ChannelAccessToken);
-            request.Content = JsonContent.Create(requestPayload);
+            request.Content = JsonContent.Create(requestPayload, options: new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
 
             var response = await _httpClient.SendAsync(request, ct);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("成功回覆 LINE 訊息");
@@ -63,7 +97,7 @@ public sealed class LineReplyService : ILineReplyService
             else
             {
                 var errorContent = await response.Content.ReadAsStringAsync(ct);
-                _logger.LogWarning("LINE Reply API 回傳錯誤: {StatusCode}, 內容: {Content}", 
+                _logger.LogWarning("LINE Reply API 回傳錯誤: {StatusCode}, 內容: {Content}",
                     response.StatusCode, errorContent);
             }
         }
