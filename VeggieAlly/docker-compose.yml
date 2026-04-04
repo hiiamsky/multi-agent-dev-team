@@ -1,4 +1,10 @@
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   veggie-ally:
     build:
       context: .
@@ -10,6 +16,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - Line__ChannelSecret=${LINE_CHANNEL_SECRET}
       - Line__ChannelAccessToken=${LINE_CHANNEL_ACCESS_TOKEN}
+      - Line__TenantId=default
+      - Line__LiffBaseUrl=${LIFF_BASE_URL}
+      - Redis__ConnectionString=redis:6379
       - Gemini__ApiKey=${GEMINI_API_KEY}
       - Gemini__ModelId=gemini-2.0-flash
+    depends_on:
+      - redis
     restart: unless-stopped

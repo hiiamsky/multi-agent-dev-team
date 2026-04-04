@@ -1,11 +1,15 @@
 using VeggieAlly.Application;
 using VeggieAlly.Infrastructure;
+using VeggieAlly.WebAPI.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── DI 註冊（按層序） ──
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// ── Filter 註冊 ──
+builder.Services.AddScoped<LiffAuthFilter>();
 
 // ── ASP.NET Core ──
 builder.Services.AddControllers();

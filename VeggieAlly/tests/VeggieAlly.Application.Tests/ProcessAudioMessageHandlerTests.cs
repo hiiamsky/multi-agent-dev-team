@@ -15,12 +15,14 @@ public sealed class ProcessAudioMessageHandlerTests
     private readonly ILineReplyService _lineReplyService = Substitute.For<ILineReplyService>();
     private readonly ILineContentService _lineContentService = Substitute.For<ILineContentService>();
     private readonly IValidationReplyService _validationReplyService = Substitute.For<IValidationReplyService>();
+    private readonly ITenantConfigService _tenantConfigService = Substitute.For<ITenantConfigService>();
     private readonly ILogger<ProcessAudioMessageHandler> _logger = Substitute.For<ILogger<ProcessAudioMessageHandler>>();
     private readonly ProcessAudioMessageHandler _handler;
 
     public ProcessAudioMessageHandlerTests()
     {
-        _handler = new ProcessAudioMessageHandler(_chatClient, _lineReplyService, _lineContentService, _validationReplyService, _logger);
+        _tenantConfigService.GetTenantId().Returns("default");
+        _handler = new ProcessAudioMessageHandler(_chatClient, _lineReplyService, _lineContentService, _validationReplyService, _tenantConfigService, _logger);
     }
 
     private static ProcessAudioMessageCommand CreateCommand(
@@ -67,6 +69,8 @@ public sealed class ProcessAudioMessageHandlerTests
         await _validationReplyService.Received(1).ProcessLlmResponseAndReplyAsync(
             "{\"items\":[]}",
             "reply-token-123",
+            "default",
+            "U123",
             default);
     }
 

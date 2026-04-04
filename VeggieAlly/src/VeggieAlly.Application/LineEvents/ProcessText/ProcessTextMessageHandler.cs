@@ -12,17 +12,20 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
     private readonly IChatClient _chatClient;
     private readonly ILineReplyService _lineReplyService;
     private readonly IValidationReplyService _validationReplyService;
+    private readonly ITenantConfigService _tenantConfigService;
     private readonly ILogger<ProcessTextMessageHandler> _logger;
 
     public ProcessTextMessageHandler(
         IChatClient chatClient,
         ILineReplyService lineReplyService,
         IValidationReplyService validationReplyService,
+        ITenantConfigService tenantConfigService,
         ILogger<ProcessTextMessageHandler> logger)
     {
         _chatClient = chatClient;
         _lineReplyService = lineReplyService;
         _validationReplyService = validationReplyService;
+        _tenantConfigService = tenantConfigService;
         _logger = logger;
     }
 
@@ -53,7 +56,17 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             var completion = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
             var llmResponse = completion?.Text?.Trim();
 
-            await _validationReplyService.ProcessLlmResponseAndReplyAsync(llmResponse, replyToken, cancellationToken);
+            var tenantId = _tenantConfigService.GetTenantId();
+            var lineUserId = request.Event.Source?.UserId;
+            
+            if (string.IsNullOrEmpty(lineUserId))
+            {
+                _logger.LogWarning("LINE UserId 為空，無法處理");
+                return;
+            }
+
+            await _validationReplyService.ProcessLlmResponseAndReplyAsync(
+                llmResponse, replyToken, tenantId, lineUserId, cancellationToken);
             _logger.LogInformation("成功處理文字訊息並回覆");
         }
         catch (Exception ex)
