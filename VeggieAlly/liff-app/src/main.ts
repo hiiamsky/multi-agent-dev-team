@@ -12,11 +12,10 @@ async function initApp(): Promise<void> {
     const liffId = import.meta.env.VITE_LIFF_ID
     
     if (!liffId || liffId === 'your-liff-id-here') {
-      console.warn('VITE_LIFF_ID 未設定，使用測試模式')
-    } else {
-      await liff.init(liffId)
+      throw new Error('LIFF 設定錯誤：請設定有效的 VITE_LIFF_ID，並在 LINE 中重新開啟此頁面。')
     }
 
+    await liff.init(liffId)
     // LIFF 初始化成功後 mount Vue app
     const app = createApp(App)
     app.use(router)
