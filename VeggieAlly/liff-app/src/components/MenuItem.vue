@@ -11,7 +11,7 @@
     </div>
     
     <div class="item-stock" :class="{ 'out-of-stock': isOutOfStock }">
-      庫存：{{ item.remaining_qty }}/{{ item.original_qty || item.remaining_qty }}
+      庫存：{{ item.remaining_qty }}/{{ item.original_qty ?? item.remaining_qty }}
     </div>
     
     <div class="order-controls">
