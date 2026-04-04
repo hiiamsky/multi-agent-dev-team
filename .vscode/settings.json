@@ -1,8 +1,2 @@
 {
-    "chat.tools.terminal.autoApprove": {
-        "/^cd /Users/skyhsieh/skylab/product/mulAgent && gh issue create \\\\\n  --title \"\\[P3-001\\] Redis 草稿管理 \\+ 雙軌修正 API（語音覆寫 \\+ PATCH 修正）\" \\\\\n  --body '## 問題陳述\nPhase 2 完成的紅綠燈卡片僅能展示異常品項，用戶無法修正。本 Issue 實作 Redis 草稿暫存機制與雙軌修正 API，讓使用者可透過語音覆寫或 LIFF 數字鍵盤修改品項價格。\n\n## 範圍\n- Redis DraftMenuSession 暫存（Key: `\\{tenant_id\\}:draft:\\{line_user_id\\}:\\{date\\}`，TTL 24hr）\n- 語音覆寫流程：語音 → STT → 識別待修正品項 → 更新草稿 → 回傳新 Flex Message\n- PATCH `/api/draft/item/\\{id\\}` 修正 API\n- PriceCorrectPlugin SK Plugin\n- 修正後重新觸發 PriceValidation → 更新 Flex Message\n\n## 安全標籤\n- \\[x\\] 涉及認證/授權 — tenant 隔離、LINE user 身份驗證\n- \\[x\\] 涉及敏感資料處理 — 價格數據\n- \\[x\\] 涉及外部輸入 — 語音修正、LIFF PATCH body\n- \\[ \\] 涉及不可逆操作\n\n## 驗收標準\n1\\. 語音覆寫修正品項後，回傳更新的紅綠燈卡片\n2\\. PATCH API 修正後，品項重新驗證並回傳正確狀態\n3\\. 草稿 TTL 24hr，過期自動清除\n4\\. 跨租戶草稿隔離驗證通過\n\n## 依賴\n- P2-001（PriceValidationService）\n- P2-002（FlexMessageBuilder）\n- P2-003（Audio STT）' 2>&1 \\| cat$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
-    }
 }
