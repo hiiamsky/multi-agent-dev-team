@@ -65,9 +65,22 @@ public class DraftController : ControllerBase
 
         try
         {
-            var lineUserId = HttpContext.Items["LineUserId"]?.ToString()!;
-            var tenantId = HttpContext.Items["TenantId"]?.ToString()!;
+            if (!HttpContext.Items.TryGetValue("LineUserId", out var lineUserIdValue) ||
+                !HttpContext.Items.TryGetValue("TenantId", out var tenantIdValue) ||
+                string.IsNullOrWhiteSpace(lineUserIdValue?.ToString()) ||
+                string.IsNullOrWhiteSpace(tenantIdValue?.ToString()))
+            {
+                _logger.LogWarning(
+                    "Missing authentication context in {Action}. LineUserId present: {HasLineUserId}, TenantId present: {HasTenantId}",
+                    nameof(CorrectItemPrice),
+                    HttpContext.Items.ContainsKey("LineUserId"),
+                    HttpContext.Items.ContainsKey("TenantId"));
 
+                return Unauthorized(new { error = "UNAUTHORIZED", message = "缺少驗證資訊" });
+            }
+
+            var lineUserId = lineUserIdValue.ToString()!;
+            var tenantId = tenantIdValue.ToString()!;
             var command = new CorrectDraftItemCommand(
                 tenantId, lineUserId, id, request.BuyPrice, request.SellPrice);
             
