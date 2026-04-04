@@ -6,8 +6,6 @@ const mockFetch = vi.fn()
 describe('useApi', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', mockFetch)
-    // Mock import.meta.env
-    vi.stubGlobal('import', { meta: { env: { VITE_API_BASE_URL: 'http://localhost:5062' } } })
   })
 
   afterEach(() => {
