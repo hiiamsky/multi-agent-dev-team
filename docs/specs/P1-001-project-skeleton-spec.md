@@ -33,7 +33,7 @@ MediatR Dispatch
   ▼
 ProcessTextMessageHandler
   │ 組裝 ChatMessage[]（SystemPrompt + 使用者文字）
-  │ 呼叫 IChatClient.CompleteAsync()（Gemini API）
+  │ 呼叫 IChatClient.GetResponseAsync()（Gemini API）
   │ 解析回傳 JSON
   ▼
 ILineReplyService
@@ -306,7 +306,7 @@ public sealed record ProcessTextMessageCommand(LineEvent Event) : IRequest;
 3. 呼叫 `IChatClient.GetResponseAsync()`
 4. 從回傳內容驗證為合法 JSON（`JsonDocument.Parse`），非 JSON 則回傳「解析失敗，請重新輸入」
 5. 呼叫 `ILineReplyService.ReplyTextAsync()` 將 JSON 回傳給使用者
-6. **內部 try-catch**：Gemini 呼叫失敗時，改回傳錯誤訊息「解析失敗，請重新輸入」，**不拋出例外**
+6. **內部 try-catch**：Gemini 呼叫失敗（逾時、HTTP 錯誤）時，改回傳錯誤訊息「系統忙碌中，請稍後重試」，**不拋出例外**
 
 `Prompts/SystemPrompts.cs`：
 ```csharp
@@ -402,7 +402,7 @@ LINE Platform          WebhookController       LineSignatureAuthFilter       Med
      │                       │                        │                       │                    │                          │                       │
      │                       │──Send(Command)─────────────────────────────────▶│                   │                          │                       │
      │                       │                        │                       │                    │                          │                       │
-     │                       │                        │                       │                    │──CompleteAsync(messages)─▶│                       │
+     │                       │                        │                       │                    │─GetResponseAsync(messages)▶│                       │
      │                       │                        │                       │                    │◀──parsed JSON────────────│                       │
      │                       │                        │                       │                    │                          │                       │
      │                       │                        │                       │                    │──ReplyTextAsync()────────────────────────────────▶│
