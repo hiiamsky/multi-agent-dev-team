@@ -1,9 +1,13 @@
+using System.Text;
 using System.Text.Json;
 using MediatR;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using VeggieAlly.Application.Common.Interfaces;
 using VeggieAlly.Application.Prompts;
 using VeggieAlly.Domain.Abstractions;
+using VeggieAlly.Domain.Models.Parsing;
+using VeggieAlly.Domain.ValueObjects;
 
 namespace VeggieAlly.Application.LineEvents.ProcessText;
 
@@ -11,15 +15,21 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
 {
     private readonly IChatClient _chatClient;
     private readonly ILineReplyService _lineReplyService;
+    private readonly IVegetablePricingService _pricingService;
+    private readonly IPriceValidationService _validationService;
     private readonly ILogger<ProcessTextMessageHandler> _logger;
 
     public ProcessTextMessageHandler(
         IChatClient chatClient,
         ILineReplyService lineReplyService,
+        IVegetablePricingService pricingService,
+        IPriceValidationService validationService,
         ILogger<ProcessTextMessageHandler> logger)
     {
         _chatClient = chatClient;
         _lineReplyService = lineReplyService;
+        _pricingService = pricingService;
+        _validationService = validationService;
         _logger = logger;
     }
 
@@ -67,7 +77,8 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             }
             else
             {
-                replyText = responseContent;
+                // ── Step 1.5: 解析 JSON 並進行價格驗證 ──
+                replyText = await ProcessValidationAsync(responseContent, cancellationToken);
             }
         }
         catch (Exception ex)
@@ -86,6 +97,80 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
         {
             _logger.LogWarning(ex, "LINE Reply 失敗，無法回覆使用者");
         }
+    }
+
+    private async Task<string> ProcessValidationAsync(string jsonContent, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // 反序列化為物件（items 陣列）
+            var parseResult = JsonSerializer.Deserialize<ParseResult>(jsonContent, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            });
+
+            if (parseResult?.Items == null || parseResult.Items.Count == 0)
+            {
+                _logger.LogWarning("JSON 反序列化成功但無有效品項");
+                return "解析失敗，請重新輸入";
+            }
+
+            // 走訪每個 item，查歷史價 + 驗證
+            var validatedItems = new List<ValidatedVegetableItem>();
+            
+            foreach (var item in parseResult.Items)
+            {
+                // 查詢歷史價格
+                var historicalPrice = await _pricingService.GetHistoricalAvgPriceAsync(item.Name, cancellationToken: cancellationToken);
+                
+                // 執行價格驗證
+                var validation = _validationService.Validate(item.BuyPrice, item.SellPrice, historicalPrice);
+                
+                // 組合為 ValidatedVegetableItem
+                var validatedItem = new ValidatedVegetableItem(
+                    item.Name,
+                    item.IsNew,
+                    item.BuyPrice,
+                    item.SellPrice,
+                    item.Quantity,
+                    item.Unit,
+                    historicalPrice,
+                    validation
+                );
+                
+                validatedItems.Add(validatedItem);
+            }
+
+            // 產生回覆文字：用 🟢/🔴 標示每個品項的驗證結果
+            return GenerateValidationReply(validatedItems);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON 反序列化失敗: {Json}", jsonContent);
+            return "解析失敗，請重新輸入";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "價格驗證過程發生錯誤");
+            return "系統忙碌中，請稍後重試";
+        }
+    }
+
+    private static string GenerateValidationReply(List<ValidatedVegetableItem> validatedItems)
+    {
+        var reply = new StringBuilder("📋 報價驗證結果：\n");
+
+        foreach (var item in validatedItems)
+        {
+            var icon = item.Validation.Status == ValidationStatus.Ok ? "🟢" : "🔴";
+            var warning = item.Validation.Status != ValidationStatus.Ok && !string.IsNullOrEmpty(item.Validation.Message)
+                ? $" ⚠️ {item.Validation.Message}"
+                : "";
+
+            reply.AppendLine($"{icon} {item.Name}｜進${item.BuyPrice} 售${item.SellPrice} x{item.Quantity}{item.Unit}{warning}");
+        }
+
+        return reply.ToString();
     }
 
     private static bool IsValidJson(string text)

@@ -2,9 +2,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
 using OpenAI;
+using VeggieAlly.Application.Common.Interfaces;
+using VeggieAlly.Application.Services;
 using VeggieAlly.Domain.Abstractions;
 using VeggieAlly.Infrastructure.AI;
 using VeggieAlly.Infrastructure.Line;
+using VeggieAlly.Infrastructure.Services;
 
 namespace VeggieAlly.Infrastructure;
 
@@ -46,6 +49,10 @@ public static class DependencyInjection
                 return GeminiChatClientFactory.Create(opts.ApiKey, opts.ModelId);
             });
         }
+
+        // ── Price Validation Services ──
+        services.AddScoped<IVegetablePricingService, MockVegetablePricingService>();
+        services.AddScoped<IPriceValidationService, PriceValidationService>();
 
         return services;
     }
