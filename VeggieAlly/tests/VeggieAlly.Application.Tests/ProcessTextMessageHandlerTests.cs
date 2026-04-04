@@ -149,4 +149,34 @@ public sealed class ProcessTextMessageHandlerTests
 
         Assert.Null(exception);
     }
+
+    [Fact]
+    public async Task Handle_GeminiReturnsMarkdownWrappedJson_StripsAndRepliesJson()
+    {
+        var wrappedJson = "```json\n" + ValidJson + "\n```";
+        SetupChatClientReturns(wrappedJson);
+        var command = CreateCommand();
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        await _lineReplyService.Received(1).ReplyTextAsync(
+            "reply-token-123",
+            ValidJson,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_GeminiReturnsCodeFenceWithoutLang_StripsAndRepliesJson()
+    {
+        var wrappedJson = "```\n" + ValidJson + "\n```";
+        SetupChatClientReturns(wrappedJson);
+        var command = CreateCommand();
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        await _lineReplyService.Received(1).ReplyTextAsync(
+            "reply-token-123",
+            ValidJson,
+            Arg.Any<CancellationToken>());
+    }
 }

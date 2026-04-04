@@ -50,7 +50,10 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             };
 
             var completion = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-            var responseContent = completion?.Text;
+            var responseContent = completion?.Text?.Trim();
+
+            // LLM 有時會用 markdown 代碼框包裹 JSON，去除之
+            responseContent = StripMarkdownCodeFence(responseContent);
 
             if (string.IsNullOrWhiteSpace(responseContent))
             {
@@ -96,5 +99,26 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
         {
             return false;
         }
+    }
+
+    private static string? StripMarkdownCodeFence(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return text;
+
+        var trimmed = text.Trim();
+        if (trimmed.StartsWith("```"))
+        {
+            // 去除第一行 ```json 或 ```
+            var firstNewLine = trimmed.IndexOf('\n');
+            if (firstNewLine >= 0)
+                trimmed = trimmed[(firstNewLine + 1)..];
+
+            // 去除最後的 ```
+            if (trimmed.EndsWith("```"))
+                trimmed = trimmed[..^3].TrimEnd();
+        }
+
+        return trimmed;
     }
 }
