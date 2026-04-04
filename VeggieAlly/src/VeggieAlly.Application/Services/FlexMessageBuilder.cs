@@ -1,6 +1,7 @@
 using VeggieAlly.Application.Common.Interfaces;
 using VeggieAlly.Domain.ValueObjects;
 using VeggieAlly.Domain.Models.Draft;
+using VeggieAlly.Domain.Models.Menu;
 
 namespace VeggieAlly.Application.Services;
 
@@ -123,9 +124,42 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
             }
         }
 
-        var footerText = string.IsNullOrWhiteSpace(liffBaseUrl)
-            ? "💡 如需修正，請重新傳送語音或文字"
-            : "💡 點擊修正按鈕或重新傳送語音修正";
+        // Footer 根據情況顯示不同內容
+        var footerContents = new List<object>();
+        
+        if (anomalyItems.Count == 0 && okItems.Count > 0)
+        {
+            // 全部品項都 Ok，顯示發布按鈕
+            footerContents.Add(new Dictionary<string, object>
+            {
+                ["type"] = "button",
+                ["height"] = "sm",
+                ["style"] = "primary",
+                ["color"] = "#1DB446",
+                ["action"] = new Dictionary<string, object>
+                {
+                    ["type"] = "postback",
+                    ["label"] = "🚀 一鍵發布",
+                    ["data"] = "action=publish"
+                }
+            });
+        }
+        else
+        {
+            // 有異常品項，顯示修正提示
+            var footerText = string.IsNullOrWhiteSpace(liffBaseUrl)
+                ? "💡 如需修正，請重新傳送語音或文字"
+                : "💡 點擊修正按鈕或重新傳送語音修正";
+                
+            footerContents.Add(new Dictionary<string, object>
+            {
+                ["type"] = "text",
+                ["text"] = footerText,
+                ["size"] = "xs",
+                ["color"] = "#AAAAAA",
+                ["align"] = "center"
+            });
+        }
 
         var bubble = new Dictionary<string, object>
         {
@@ -157,17 +191,7 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
             {
                 ["type"] = "box",
                 ["layout"] = "vertical",
-                ["contents"] = new List<object>
-                {
-                    new Dictionary<string, object>
-                    {
-                        ["type"] = "text",
-                        ["text"] = footerText,
-                        ["size"] = "xs",
-                        ["color"] = "#AAAAAA",
-                        ["align"] = "center"
-                    }
-                }
+                ["contents"] = footerContents
             }
         };
 
@@ -346,6 +370,155 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
             ["layout"] = "vertical",
             ["margin"] = "sm",
             ["contents"] = contents
+        };
+    }
+
+    public object BuildPublishedBubble(PublishedMenu menu)
+    {
+        if (menu?.Items is null || menu.Items.Count == 0)
+            throw new ArgumentException("已發布菜單不得為空", nameof(menu));
+
+        var bodyContents = new List<object>
+        {
+            // 成功訊息
+            new Dictionary<string, object>
+            {
+                ["type"] = "box",
+                ["layout"] = "horizontal",
+                ["contents"] = new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "text",
+                        ["text"] = "✅",
+                        ["size"] = "xxl",
+                        ["flex"] = 1
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "box",
+                        ["layout"] = "vertical",
+                        ["flex"] = 4,
+                        ["contents"] = new List<object>
+                        {
+                            new Dictionary<string, object>
+                            {
+                                ["type"] = "text",
+                                ["text"] = "菜單發布成功！",
+                                ["weight"] = "bold",
+                                ["size"] = "lg",
+                                ["color"] = "#1DB446"
+                            },
+                            new Dictionary<string, object>
+                            {
+                                ["type"] = "text",
+                                ["text"] = $"共 {menu.Items.Count} 項商品",
+                                ["size"] = "sm",
+                                ["color"] = "#666666",
+                                ["margin"] = "xs"
+                            }
+                        }
+                    }
+                }
+            },
+            CreateSeparator("lg")
+        };
+
+        // 商品清單（限制顯示前5項）
+        var displayItems = menu.Items.Take(5);
+        foreach (var item in displayItems)
+        {
+            bodyContents.Add(CreatePublishedItemRow(item));
+        }
+
+        // 如果商品超過5項，顯示省略提示
+        if (menu.Items.Count > 5)
+        {
+            bodyContents.Add(new Dictionary<string, object>
+            {
+                ["type"] = "text",
+                ["text"] = $"... 等共 {menu.Items.Count} 項商品",
+                ["size"] = "xs",
+                ["color"] = "#AAAAAA",
+                ["align"] = "center",
+                ["margin"] = "md"
+            });
+        }
+
+        var bubble = new Dictionary<string, object>
+        {
+            ["type"] = "bubble",
+            ["header"] = new Dictionary<string, object>
+            {
+                ["type"] = "box",
+                ["layout"] = "vertical",
+                ["contents"] = new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "text",
+                        ["text"] = "🎉 發布完成",
+                        ["weight"] = "bold",
+                        ["size"] = "lg",
+                        ["color"] = "#333333"
+                    }
+                }
+            },
+            ["body"] = new Dictionary<string, object>
+            {
+                ["type"] = "box",
+                ["layout"] = "vertical",
+                ["spacing"] = "sm",
+                ["contents"] = bodyContents
+            },
+            ["footer"] = new Dictionary<string, object>
+            {
+                ["type"] = "box",
+                ["layout"] = "vertical",
+                ["contents"] = new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "text",
+                        ["text"] = "顧客現在可以透過 LIFF 查看今日菜單",
+                        ["size"] = "xs",
+                        ["color"] = "#AAAAAA",
+                        ["align"] = "center"
+                    }
+                }
+            }
+        };
+
+        return bubble;
+    }
+
+    private static Dictionary<string, object> CreatePublishedItemRow(PublishedMenuItem item)
+    {
+        return new Dictionary<string, object>
+        {
+            ["type"] = "box",
+            ["layout"] = "horizontal",
+            ["margin"] = "sm",
+            ["contents"] = new List<object>
+            {
+                new Dictionary<string, object>
+                {
+                    ["type"] = "text",
+                    ["text"] = item.Name,
+                    ["size"] = "sm",
+                    ["color"] = "#333333",
+                    ["flex"] = 3
+                },
+                new Dictionary<string, object>
+                {
+                    ["type"] = "text",
+                    ["text"] = $"${item.SellPrice} x{item.RemainingQty}{item.Unit}",
+                    ["size"] = "sm",
+                    ["color"] = "#666666",
+                    ["align"] = "end",
+                    ["flex"] = 2
+                }
+            }
         };
     }
 }

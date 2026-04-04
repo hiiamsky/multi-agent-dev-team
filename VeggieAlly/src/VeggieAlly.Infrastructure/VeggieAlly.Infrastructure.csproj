@@ -5,12 +5,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Microsoft.Extensions.AI" Version="10.4.1" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.4.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.5" />
     <PackageReference Include="Mscc.GenerativeAI" Version="3.1.0" />
     <PackageReference Include="Mscc.GenerativeAI.Microsoft" Version="3.1.0" />
+    <PackageReference Include="Npgsql" Version="8.0.5" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
   </ItemGroup>
 

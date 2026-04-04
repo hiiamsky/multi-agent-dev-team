@@ -5,6 +5,18 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: veggie
+      POSTGRES_PASSWORD: veggie_dev
+      POSTGRES_DB: veggieally
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
   veggie-ally:
     build:
       context: .
@@ -14,6 +26,7 @@ services:
       - "5001:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PostgreSQL=Host=postgres;Database=veggieally;Username=veggie;Password=veggie_dev
       - Line__ChannelSecret=${LINE_CHANNEL_SECRET}
       - Line__ChannelAccessToken=${LINE_CHANNEL_ACCESS_TOKEN}
       - Line__TenantId=default
@@ -23,4 +36,8 @@ services:
       - Gemini__ModelId=gemini-2.0-flash
     depends_on:
       - redis
+      - postgres
     restart: unless-stopped
+
+volumes:
+  pgdata:

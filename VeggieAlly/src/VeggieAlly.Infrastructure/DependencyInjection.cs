@@ -1,13 +1,16 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
+using Npgsql;
 using OpenAI;
 using StackExchange.Redis;
 using VeggieAlly.Application.Common.Interfaces;
 using VeggieAlly.Application.Services;
 using VeggieAlly.Domain.Abstractions;
 using VeggieAlly.Infrastructure.AI;
+using VeggieAlly.Infrastructure.Cache;
 using VeggieAlly.Infrastructure.Line;
+using VeggieAlly.Infrastructure.Persistence;
 using VeggieAlly.Infrastructure.Services;
 using VeggieAlly.Infrastructure.Storage;
 
@@ -98,6 +101,28 @@ public static class DependencyInjection
 
         // ── Validation Reply Pipeline ──
         services.AddScoped<IValidationReplyService, ValidationReplyService>();
+
+        // ── PostgreSQL + Published Menu Services ──
+        var pgConnectionString = configuration.GetConnectionString("PostgreSQL");
+        if (!string.IsNullOrWhiteSpace(pgConnectionString))
+        {
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(pgConnectionString);
+            var dataSource = dataSourceBuilder.Build();
+            services.AddSingleton(dataSource);
+            
+            // Repository 服務
+            services.AddScoped<IPublishedMenuRepository, PublishedMenuRepository>();
+            
+            // Cache 服務
+            if (!string.IsNullOrWhiteSpace(redisConnectionString))
+            {
+                services.AddScoped<IPublishedMenuCache, PublishedMenuCache>();
+            }
+            else
+            {
+                services.AddScoped<IPublishedMenuCache, NoOpPublishedMenuCache>();
+            }
+        }
 
         return services;
     }

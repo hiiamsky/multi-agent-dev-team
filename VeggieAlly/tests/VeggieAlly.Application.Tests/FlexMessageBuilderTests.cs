@@ -184,4 +184,67 @@ public sealed class FlexMessageBuilderTests
 
         act.Should().Throw<ArgumentException>();
     }
+
+    // ── P3-002 新增測試 ──
+
+    [Fact]
+    public void BuildDraftBubble_AllOk_HasPublishButton()
+    {
+        var session = CreateDraftSession(
+            new DraftItem("id1", "高麗菜", false, 25, 35, 50, "箱", 24m, ValidationResult.Ok()),
+            new DraftItem("id2", "白蘿蔔", false, 18, 30, 30, "箱", 20m, ValidationResult.Ok()));
+
+        var result = _builder.BuildDraftBubble(session, "https://liff.example.com");
+        var json = Serialize(result);
+
+        // Footer 含 Postback 按鈕
+        json.Should().Contain("postback");
+        json.Should().Contain("一鍵發布");
+        json.Should().Contain("action=publish");
+    }
+
+    [Fact]
+    public void BuildDraftBubble_HasAnomaly_NoPublishButton()
+    {
+        var session = CreateDraftSession(
+            new DraftItem("id1", "高麗菜", false, 25, 35, 50, "箱", 24m, ValidationResult.Ok()),
+            new DraftItem("id2", "白蘿蔔", false, 30, 20, 30, "箱", 20m, ValidationResult.Anomaly("售價低於進價")));
+
+        var result = _builder.BuildDraftBubble(session, "https://liff.example.com");
+        var json = Serialize(result);
+
+        json.Should().NotContain("🚀 一鍵發布");
+        json.Should().Contain("點擊修正按鈕或重新傳送語音修正");
+    }
+
+    [Fact]
+    public void BuildPublishedBubble_ShowsConfirmation()
+    {
+        var menu = new VeggieAlly.Domain.Models.Menu.PublishedMenu
+        {
+            Id = "menu-1",
+            TenantId = "tenant-1",
+            PublishedByUserId = "user-1",
+            Date = DateOnly.FromDateTime(DateTime.Today),
+            Items = [new VeggieAlly.Domain.Models.Menu.PublishedMenuItem
+            {
+                Id = "item-1",
+                MenuId = "menu-1",
+                Name = "高麗菜",
+                SellPrice = 35m,
+                BuyPrice = 25m,
+                OriginalQty = 50,
+                RemainingQty = 50,
+                Unit = "箱"
+            }],
+            PublishedAt = DateTimeOffset.UtcNow
+        };
+
+        var result = _builder.BuildPublishedBubble(menu);
+        var json = Serialize(result);
+
+        json.Should().Contain("✅");
+        json.Should().Contain("菜單發布成功");
+        json.Should().Contain("高麗菜");
+    }
 }
