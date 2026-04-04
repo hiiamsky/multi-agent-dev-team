@@ -1,4 +1,5 @@
 using Microsoft.Extensions.AI;
+using Mscc.GenerativeAI.Microsoft;
 
 namespace VeggieAlly.Infrastructure.AI;
 
@@ -16,8 +17,6 @@ public static class GeminiChatClientFactory
             throw new ArgumentException("Model ID 不可為空", nameof(modelId));
         }
 
-        // 暫時實作：建立 Adapter 來包裝 IChatClient 介面
-        // TODO: 整合實際的 Mscc.GenerativeAI 套件
-        return new GeminiChatClientAdapter(apiKey, modelId);
+        return new GeminiChatClient(apiKey: apiKey, model: modelId);
     }
 }
