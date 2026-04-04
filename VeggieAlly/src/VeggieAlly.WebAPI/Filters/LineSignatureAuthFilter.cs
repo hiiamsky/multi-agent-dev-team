@@ -5,7 +5,7 @@ using VeggieAlly.Infrastructure.Line;
 
 namespace VeggieAlly.WebAPI.Filters;
 
-public sealed class LineSignatureAuthFilter : IAsyncActionFilter
+public sealed class LineSignatureAuthFilter : IAsyncResourceFilter
 {
     private readonly LineOptions _lineOptions;
     private readonly ILogger<LineSignatureAuthFilter> _logger;
@@ -16,11 +16,11 @@ public sealed class LineSignatureAuthFilter : IAsyncActionFilter
         _logger = logger;
     }
 
-    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
     {
         var request = context.HttpContext.Request;
 
-        // 啟用 Request Body 的重複讀取
+        // 啟用 Request Body 的重複讀取（在 model binding 之前）
         request.EnableBuffering();
 
         // 取得 X-Line-Signature Header
@@ -44,7 +44,7 @@ public sealed class LineSignatureAuthFilter : IAsyncActionFilter
         await request.Body.CopyToAsync(memoryStream);
         var requestBody = memoryStream.ToArray();
 
-        // 重設 Body 位置以供後續讀取
+        // 重設 Body 位置以供 model binding 讀取
         request.Body.Position = 0;
 
         // 驗證簽章

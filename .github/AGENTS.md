@@ -13,7 +13,8 @@ description: "Multi-agent team coordination rules for enterprise software develo
 | **前端 PG** | UI 元件、路由、API Client | ✓ | Sonnet |
 | **後端 PG** | Controller、CQRS、Domain、Dapper | ✓ | Sonnet |
 | **DBA** | Schema、DDL/DML、索引策略 | ✓ | Sonnet |
-| **QA/QC** | 整合驗證、破壞性測試、批判迴圈 | ✗ | Opus |
+| **QA/QC** | API 測試、整合驗證、破壞性測試 | ✗ | Opus |
+| **E2E 測試** | 核心業務流程端到端測試、Playwright 控制 | ✓ | Sonnet |
 
 ## 工作流程
 
@@ -46,15 +47,15 @@ description: "Multi-agent team coordination rules for enterprise software develo
                     │
                     ▼
             ┌──────────────┐
-            │    QA/QC     │  階段四：整合驗證 + 批判迴圈
-            │              │
+            |   QA/QC      |  階段四：API 層/單元整合驗證
+            |   E2E 測試   |  階段五：真實使用者 UI 端到端驗證與批判迴圈
             └──────┬───────┘
-                   │
+                   |
            ┌───────┴───────┐
            ▼               ▼
      ✅ 可發布        ❌ 退回修正
      → Orchestrator    → 溯源退回對應 Agent
-       │                 → 修正後重新提交 QA/QC
+       │                 → 從前端 UI 到後端 API 追查 Trace/Log
        ▼
 ┌──────────────┐
 │ Orchestrator │  階段五：PR 協調
@@ -75,12 +76,13 @@ description: "Multi-agent team coordination rules for enterprise software develo
 | 規格已定、需實作前端 | 前端 PG |
 | 規格已定、需實作後端 | 後端 PG |
 | 規格已定、需建表/改表 | DBA |
-| 交付物需驗證 | QA/QC |
+| 交付物需 API 驗證 | QA/QC |
+| 需進行全系統 UI 核心流程測試 | E2E 測試 |
 | 規格有爭議或矛盾 | SA/SD（重新設計） |
 
 ### 禁止路由
 
-- Orchestrator **不得**直接指派實作任務給前端/後端/DBA（必須先經 SA/SD 產出藍圖）
+- Orchestrator **不得**直接指派實作任務給前端/後端/DBA/E2E 測試（必須先經 SA/SD 產出藍圖）
 - 開發層 Agent **不得**繞過 QA/QC 直接宣告完成
 - QA/QC **不得**繞過 Orchestrator 直接接受人類需求
 
