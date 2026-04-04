@@ -1,0 +1,15 @@
+services:
+  veggie-ally:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Line__ChannelSecret=${LINE_CHANNEL_SECRET}
+      - Line__ChannelAccessToken=${LINE_CHANNEL_ACCESS_TOKEN}
+      - Gemini__ApiKey=${GEMINI_API_KEY}
+      - Gemini__ModelId=gemini-2.0-flash
+    restart: unless-stopped
