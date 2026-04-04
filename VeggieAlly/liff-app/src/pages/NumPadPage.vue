@@ -73,8 +73,14 @@ const itemInfo = ref({
 })
 
 // QueryString 參數
-const itemId = computed(() => route.query.item_id as string)
-const field = computed(() => route.query.field as string)
+const itemId = computed(() => {
+  const value = route.query.item_id
+  return typeof value === 'string' ? value : ''
+})
+const field = computed(() => {
+  const value = route.query.field
+  return typeof value === 'string' ? value : ''
+})
 
 // 顯示相關計算
 const displayValue = computed(() => inputValue.value || '0')
