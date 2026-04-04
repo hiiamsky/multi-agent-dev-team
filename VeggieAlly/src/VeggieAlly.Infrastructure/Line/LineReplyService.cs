@@ -50,10 +50,11 @@ public sealed class LineReplyService : ILineReplyService
                 }
             };
 
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.ChannelAccessToken}");
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/v2/bot/message/reply");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ChannelAccessToken);
+            request.Content = JsonContent.Create(requestPayload);
 
-            var response = await _httpClient.PostAsJsonAsync("/v2/bot/message/reply", requestPayload, ct);
+            var response = await _httpClient.SendAsync(request, ct);
             
             if (response.IsSuccessStatusCode)
             {
@@ -62,14 +63,13 @@ public sealed class LineReplyService : ILineReplyService
             else
             {
                 var errorContent = await response.Content.ReadAsStringAsync(ct);
-                _logger.LogError("LINE Reply API 回傳錯誤: {StatusCode}, 內容: {Content}", 
+                _logger.LogWarning("LINE Reply API 回傳錯誤: {StatusCode}, 內容: {Content}", 
                     response.StatusCode, errorContent);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "呼叫 LINE Reply API 時發生例外");
-            throw;
+            _logger.LogWarning(ex, "呼叫 LINE Reply API 時發生例外");
         }
     }
 }

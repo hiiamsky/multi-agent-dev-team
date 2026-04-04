@@ -22,7 +22,7 @@ public static class DependencyInjection
 
         // ── AI: Gemini via MEAI ──
         services.Configure<GeminiOptions>(configuration.GetSection("Gemini"));
-        services.AddSingleton<IChatClient>(sp =>
+        services.AddChatClient(sp =>
         {
             var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<GeminiOptions>>().Value;
             return GeminiChatClientFactory.Create(opts.ApiKey, opts.ModelId);

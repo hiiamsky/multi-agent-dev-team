@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -38,43 +39,62 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             return;
         }
 
+        // ── Step 1: 呼叫 Gemini API ──
+        string replyText;
         try
         {
-            // 組裝 ChatMessage 陣列：SystemPrompt + 使用者文字
             var messages = new ChatMessage[]
             {
                 new(ChatRole.System, SystemPrompts.VegetableParser),
                 new(ChatRole.User, textMessage)
             };
 
-            // 呼叫 Gemini API 
             var completion = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
             var responseContent = completion?.Text;
 
             if (string.IsNullOrWhiteSpace(responseContent))
             {
-                await _lineReplyService.ReplyTextAsync(replyToken, "解析失敗，請重新輸入", cancellationToken);
                 _logger.LogWarning("Gemini 回傳空內容");
-                return;
+                replyText = "解析失敗，請重新輸入";
             }
+            else if (!IsValidJson(responseContent))
+            {
+                _logger.LogWarning("Gemini 回傳非 JSON 格式: {Content}", responseContent);
+                replyText = "解析失敗，請重新輸入";
+            }
+            else
+            {
+                replyText = responseContent;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Gemini API 呼叫失敗");
+            replyText = "系統忙碌中，請稍後重試";
+        }
 
-            // 將 Gemini 回傳的 JSON 直接回傳給使用者
-            await _lineReplyService.ReplyTextAsync(replyToken, responseContent, cancellationToken);
+        // ── Step 2: 回覆 LINE 使用者（獨立 try-catch） ──
+        try
+        {
+            await _lineReplyService.ReplyTextAsync(replyToken, replyText, cancellationToken);
             _logger.LogInformation("成功處理文字訊息並回覆");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "處理文字訊息時發生例外");
-            
-            // 內部 try-catch：嘗試回傳錯誤訊息給使用者
-            try
-            {
-                await _lineReplyService.ReplyTextAsync(replyToken, "系統忙碌中，請稍後重試", cancellationToken);
-            }
-            catch (Exception replyEx)
-            {
-                _logger.LogWarning(replyEx, "回傳錯誤訊息失敗，無法回覆使用者");
-            }
+            _logger.LogWarning(ex, "LINE Reply 失敗，無法回覆使用者");
+        }
+    }
+
+    private static bool IsValidJson(string text)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
         }
     }
 }
