@@ -14,6 +14,8 @@ public sealed class ValidationReplyService : IValidationReplyService
     private readonly IVegetablePricingService _pricingService;
     private readonly IPriceValidationService _validationService;
     private readonly IFlexMessageBuilder _flexMessageBuilder;
+    private readonly IDraftMenuService _draftMenuService;
+    private readonly ILiffConfigService _liffConfigService;
     private readonly ILogger<ValidationReplyService> _logger;
 
     public ValidationReplyService(
@@ -21,16 +23,23 @@ public sealed class ValidationReplyService : IValidationReplyService
         IVegetablePricingService pricingService,
         IPriceValidationService validationService,
         IFlexMessageBuilder flexMessageBuilder,
+        IDraftMenuService draftMenuService,
+        ILiffConfigService liffConfigService,
         ILogger<ValidationReplyService> logger)
     {
         _lineReplyService = lineReplyService;
         _pricingService = pricingService;
         _validationService = validationService;
         _flexMessageBuilder = flexMessageBuilder;
+        _draftMenuService = draftMenuService;
+        _liffConfigService = liffConfigService;
         _logger = logger;
     }
 
-    public async Task ProcessLlmResponseAndReplyAsync(string? llmResponse, string replyToken, CancellationToken ct = default)
+    public async Task ProcessLlmResponseAndReplyAsync(
+        string? llmResponse, string replyToken,
+        string tenantId, string lineUserId,
+        CancellationToken ct = default)
     {
         var responseContent = StripMarkdownCodeFence(llmResponse);
 
@@ -60,10 +69,32 @@ public sealed class ValidationReplyService : IValidationReplyService
             {
                 try
                 {
-                    var bubble = _flexMessageBuilder.BuildBubble(validatedItems);
-                    var okCount = validatedItems.Count(i => i.Validation.Status == ValidationStatus.Ok);
-                    var anomalyCount = validatedItems.Count - okCount;
-                    var altText = $"📋 報價驗證結果：{okCount}項正常, {anomalyCount}項異常";
+                    // 先嘗試建立或合併草稿
+                    object bubble;
+                    string altText;
+                    
+                    try
+                    {
+                        var session = await _draftMenuService.CreateOrMergeDraftAsync(
+                            tenantId, lineUserId, validatedItems, ct);
+                        
+                        var liffBaseUrl = _liffConfigService.GetLiffBaseUrl();
+                        bubble = _flexMessageBuilder.BuildDraftBubble(session, liffBaseUrl);
+                        
+                        var okCount = session.Items.Count(i => i.Validation.Status == ValidationStatus.Ok);
+                        var anomalyCount = session.Items.Count - okCount;
+                        altText = $"📋 報價驗證結果：{okCount}項正常, {anomalyCount}項異常 (可修正)";
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "草稿儲存失敗，降級為無修正按鈕模式");
+                        // 降級為傳統模式
+                        bubble = _flexMessageBuilder.BuildBubble(validatedItems);
+                        var okCount = validatedItems.Count(i => i.Validation.Status == ValidationStatus.Ok);
+                        var anomalyCount = validatedItems.Count - okCount;
+                        altText = $"📋 報價驗證結果：{okCount}項正常, {anomalyCount}項異常";
+                    }
+
                     await _lineReplyService.ReplyFlexAsync(replyToken, altText, bubble, ct);
                 }
                 catch (Exception ex)

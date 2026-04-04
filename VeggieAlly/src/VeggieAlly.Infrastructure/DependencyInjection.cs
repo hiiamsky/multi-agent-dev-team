@@ -2,12 +2,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
 using OpenAI;
+using StackExchange.Redis;
 using VeggieAlly.Application.Common.Interfaces;
 using VeggieAlly.Application.Services;
 using VeggieAlly.Domain.Abstractions;
 using VeggieAlly.Infrastructure.AI;
 using VeggieAlly.Infrastructure.Line;
 using VeggieAlly.Infrastructure.Services;
+using VeggieAlly.Infrastructure.Storage;
 
 namespace VeggieAlly.Infrastructure;
 
@@ -27,6 +29,33 @@ public static class DependencyInjection
         {
             client.BaseAddress = new Uri("https://api-data.line.me");
         });
+
+        // ── LINE Token Service ──
+        services.AddHttpClient<ILineTokenService, LineTokenService>((sp, client) =>
+        {
+            client.BaseAddress = new Uri("https://api.line.me");
+        });
+
+        // ── Tenant Config Service ──
+        services.AddScoped<ITenantConfigService, TenantConfigService>();
+
+        // ── LIFF Config Service ──
+        services.AddScoped<ILiffConfigService, LiffConfigService>();
+
+        // ── Draft Session Store（Redis / In-Memory 切換）──
+        var redisConnectionString = configuration.GetValue<string>("Redis:ConnectionString");
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+            services.AddScoped<IDraftSessionStore, RedisDraftSessionStore>();
+        }
+        else
+        {
+            services.AddSingleton<IDraftSessionStore, InMemoryDraftSessionStore>();
+        }
+
+        // ── Draft Menu Service ──
+        services.AddScoped<IDraftMenuService, DraftMenuService>();
 
         // ── AI: 根據 AI:Provider 切換後端 ──
         var aiProvider = configuration.GetValue<string>("AI:Provider") ?? "gemini";

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using VeggieAlly.Application.Services;
+using VeggieAlly.Domain.Models.Draft;
 using VeggieAlly.Domain.ValueObjects;
 
 namespace VeggieAlly.Application.Tests;
@@ -129,5 +130,58 @@ public sealed class FlexMessageBuilderTests
 
         var parsed = JsonDocument.Parse(json);
         parsed.RootElement.GetProperty("type").GetString().Should().Be("bubble");
+    }
+
+    // --- BuildDraftBubble Tests ---
+
+    private static DraftMenuSession CreateDraftSession(params DraftItem[] items)
+    {
+        return new DraftMenuSession
+        {
+            TenantId = "default",
+            LineUserId = "U123",
+            Date = DateOnly.FromDateTime(DateTime.UtcNow),
+            Items = items.ToList(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    [Fact]
+    public void BuildDraftBubble_Anomaly_HasButtons()
+    {
+        var session = CreateDraftSession(
+            new DraftItem("a1b2c3d4e5f67890a1b2c3d4e5f67890", "初秋高麗菜", false, 50, 40, 10, "箱", 25m,
+                ValidationResult.Anomaly("售價低於或等於進價")));
+
+        var json = Serialize(_builder.BuildDraftBubble(session, "https://liff.line.me/1234"));
+
+        json.Should().Contain("✏️ 修正");
+        json.Should().Contain("item_id=a1b2c3d4e5f67890a1b2c3d4e5f67890");
+        json.Should().Contain("uri");
+    }
+
+    [Fact]
+    public void BuildDraftBubble_AllOk_NoButtons()
+    {
+        var session = CreateDraftSession(
+            new DraftItem("a1b2c3d4e5f67890a1b2c3d4e5f67890", "初秋高麗菜", false, 25, 35, 50, "箱", 25m,
+                ValidationResult.Ok()));
+
+        var json = Serialize(_builder.BuildDraftBubble(session, "https://liff.line.me/1234"));
+
+        json.Should().NotContain("✏️ 修正");
+        json.Should().Contain("初秋高麗菜");
+        json.Should().Contain("準備發布");
+    }
+
+    [Fact]
+    public void BuildDraftBubble_Empty_Throws()
+    {
+        var session = CreateDraftSession();
+
+        var act = () => _builder.BuildDraftBubble(session, null);
+
+        act.Should().Throw<ArgumentException>();
     }
 }

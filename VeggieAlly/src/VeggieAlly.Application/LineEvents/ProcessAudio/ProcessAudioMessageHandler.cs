@@ -13,6 +13,7 @@ public sealed class ProcessAudioMessageHandler : IRequestHandler<ProcessAudioMes
     private readonly ILineReplyService _lineReplyService;
     private readonly ILineContentService _lineContentService;
     private readonly IValidationReplyService _validationReplyService;
+    private readonly ITenantConfigService _tenantConfigService;
     private readonly ILogger<ProcessAudioMessageHandler> _logger;
 
     public ProcessAudioMessageHandler(
@@ -20,12 +21,14 @@ public sealed class ProcessAudioMessageHandler : IRequestHandler<ProcessAudioMes
         ILineReplyService lineReplyService,
         ILineContentService lineContentService,
         IValidationReplyService validationReplyService,
+        ITenantConfigService tenantConfigService,
         ILogger<ProcessAudioMessageHandler> logger)
     {
         _chatClient = chatClient;
         _lineReplyService = lineReplyService;
         _lineContentService = lineContentService;
         _validationReplyService = validationReplyService;
+        _tenantConfigService = tenantConfigService;
         _logger = logger;
     }
 
@@ -80,7 +83,17 @@ public sealed class ProcessAudioMessageHandler : IRequestHandler<ProcessAudioMes
             var completion = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
             var llmResponse = completion?.Text?.Trim();
 
-            await _validationReplyService.ProcessLlmResponseAndReplyAsync(llmResponse, replyToken, cancellationToken);
+            var tenantId = _tenantConfigService.GetTenantId();
+            var lineUserId = request.Event.Source?.UserId;
+            
+            if (string.IsNullOrEmpty(lineUserId))
+            {
+                _logger.LogWarning("LINE UserId 為空，無法處理");
+                return;
+            }
+
+            await _validationReplyService.ProcessLlmResponseAndReplyAsync(
+                llmResponse, replyToken, tenantId, lineUserId, cancellationToken);
             _logger.LogInformation("成功處理語音訊息並回覆");
         }
         catch (Exception ex)

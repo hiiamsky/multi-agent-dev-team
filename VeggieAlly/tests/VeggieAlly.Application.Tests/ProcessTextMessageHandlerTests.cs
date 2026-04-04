@@ -14,12 +14,14 @@ public sealed class ProcessTextMessageHandlerTests
     private readonly IChatClient _chatClient = Substitute.For<IChatClient>();
     private readonly ILineReplyService _lineReplyService = Substitute.For<ILineReplyService>();
     private readonly IValidationReplyService _validationReplyService = Substitute.For<IValidationReplyService>();
+    private readonly ITenantConfigService _tenantConfigService = Substitute.For<ITenantConfigService>();
     private readonly ILogger<ProcessTextMessageHandler> _logger = Substitute.For<ILogger<ProcessTextMessageHandler>>();
     private readonly ProcessTextMessageHandler _handler;
 
     public ProcessTextMessageHandlerTests()
     {
-        _handler = new ProcessTextMessageHandler(_chatClient, _lineReplyService, _validationReplyService, _logger);
+        _tenantConfigService.GetTenantId().Returns("default");
+        _handler = new ProcessTextMessageHandler(_chatClient, _lineReplyService, _validationReplyService, _tenantConfigService, _logger);
     }
 
     private static ProcessTextMessageCommand CreateCommand(
@@ -54,6 +56,8 @@ public sealed class ProcessTextMessageHandlerTests
         await _validationReplyService.Received(1).ProcessLlmResponseAndReplyAsync(
             "{\"items\":[]}",
             "reply-token-123",
+            "default",
+            "U123",
             default);
     }
 
@@ -83,6 +87,8 @@ public sealed class ProcessTextMessageHandlerTests
             Arg.Any<CancellationToken>());
         await _validationReplyService.DidNotReceive().ProcessLlmResponseAndReplyAsync(
             Arg.Any<string?>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
     }
@@ -120,6 +126,8 @@ public sealed class ProcessTextMessageHandlerTests
         await _validationReplyService.Received(1).ProcessLlmResponseAndReplyAsync(
             "",
             "reply-token-123",
+            "default",
+            "U123",
             default);
     }
 
