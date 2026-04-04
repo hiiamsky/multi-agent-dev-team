@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VeggieAlly.Application/VeggieAlly.Application.csproj" />
+    <Project Path="src/VeggieAlly.Domain/VeggieAlly.Domain.csproj" />
+    <Project Path="src/VeggieAlly.Infrastructure/VeggieAlly.Infrastructure.csproj" />
+    <Project Path="src/VeggieAlly.WebAPI/VeggieAlly.WebAPI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VeggieAlly.Application.Tests/VeggieAlly.Application.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>17becd23-ce8f-4a00-9c52-12d778774e76</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VeggieAlly.Application\VeggieAlly.Application.csproj" />
+    <ProjectReference Include="..\VeggieAlly.Infrastructure\VeggieAlly.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
