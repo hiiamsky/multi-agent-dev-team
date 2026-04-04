@@ -54,7 +54,15 @@ description: "Multi-agent team coordination rules for enterprise software develo
            ▼               ▼
      ✅ 可發布        ❌ 退回修正
      → Orchestrator    → 溯源退回對應 Agent
-                         → 修正後重新提交 QA/QC
+       │                 → 修正後重新提交 QA/QC
+       ▼
+┌──────────────┐
+│ Orchestrator │  階段五：PR 協調
+│              │  ── 彙整變更摘要、建立 PR
+└──────┬───────┘
+       │
+       ▼
+  人類批准 merge → 刪除 feature branch → 任務完成
 ```
 
 ## 路由規則
@@ -189,3 +197,105 @@ QA/QC 或跨域檢視發現問題時，將 Review Critique 寫入 `docs/reviews/
 5. **精準溯源**：所有退回必須指向具體位置，不允許模糊描述
 6. **職責隔離**：每個 Agent 只做自己的事，跨域問題透過檢視機制處理
 7. **檔案即通訊**：Agent 之間不直接傳訊，所有交接透過約定目錄的檔案讀寫完成
+
+## Git Commit Message 規範
+
+所有 Agent 在產生 commit 時，必須遵守以下格式。
+
+### 格式
+
+```
+TYPE: SUBJECT
+
+BODY
+
+FOOTER
+```
+
+- 標題列（第一行）必須包含 **TYPE** 與 **SUBJECT**，以冒號加空格分隔
+- BODY 與 FOOTER 各以空行隔開，非必填
+
+### TYPE 類型
+
+| TYPE | 說明 | 影響程式碼 |
+|------|------|-----------|
+| Feat | 新功能 | 有 |
+| Modify | 既有功能需求調整的修改 | 有 |
+| Fix | 錯誤修正 | 有 |
+| Docs | 更新文件（如 README.md） | 沒有 |
+| Style | 程式碼格式調整（formatting、缺少分號等） | 沒有 |
+| Refactor | 重構，針對已上線功能的程式碼調整與優化，不改變既有邏輯 | 有 |
+| Test | 新增測試、重構測試等 | 沒有 |
+| Chore | 更新專案建置設定、更新版本號等瑣事 | 沒有 |
+| Revert | 撤銷之前的 commit，格式：`Revert: TYPE: SUBJECT (回覆版本：xxxx)` | 有 |
+
+### SUBJECT 主旨
+
+- 不超過 50 個字元
+- 英文大寫開頭，中英文都不用句號結尾
+- 以祈使句書寫，言簡意賅
+
+### BODY 本文
+
+- 非必填，但若撰寫須說明「改了什麼」與「為什麼而改」
+- 每行不超過 72 個字
+
+### FOOTER 頁尾
+
+- 必填，用來標註對應的 GitHub Issue 編號，格式：`issue #N`
+
+### 範例
+
+```
+Fix: 修正首頁資料載入緩慢問題
+
+- 首頁載入後等待超過10秒資料才顯示。
+    - 將資料改為一次撈取，並暫存在記憶體中。
+
+issue #456
+```
+
+## Git 分支策略（GitHub Flow）
+
+採用 GitHub Flow——只有一條長期分支 `main`，所有開發在 feature branch 上進行。
+
+### 規則
+
+1. **`main` 永遠可部署**——不允許直接 push 到 main
+2. **開工即開分支**——每個任務從 main 切出 feature branch
+3. **QA/QC 通過才合併**——feature branch 必須經 QA/QC 標記「可發布」後，透過 PR merge 回 main
+4. **合併後刪除分支**——保持 repo 乾淨
+
+### 分支命名慣例
+
+分支名稱必須包含對應的 GitHub Issue 編號：
+
+```
+feature/{issue-no}-{short-name}     ← 新功能，如 feature/42-user-login
+fix/{issue-no}-{short-name}         ← 錯誤修正，如 fix/57-login-timeout
+refactor/{issue-no}-{scope}         ← 重構，如 refactor/63-auth-module
+docs/{issue-no}-{topic}             ← 文件更新，如 docs/70-api-spec
+```
+
+### 與 Agent 流程的對應
+
+```
+1. 人類提出需求
+2. Orchestrator 需求淨化 → 通過後建立 GitHub Issue (#N) → 建立 feature branch
+   $ git checkout -b feature/{N}-{short-name}
+
+3. SA/SD 產出藍圖 → commit 到 feature branch
+4. 前端 PG / 後端 PG / DBA 平行施工 → 各自 commit 到同一 feature branch
+5. 跨域檢視 → 若有問題，在 feature branch 上修正並 commit
+6. QA/QC 整合驗證
+   ├── ✅ 可發布 → 進入步驟 7
+   └── ❌ 退回 → 在 feature branch 上修正 → 重新提交 QA/QC
+7. Orchestrator 彙整變更摘要 → 建立 PR（含功能摘要 + QA/QC 驗證結果 + `closes #N`）
+8. 人類批准 merge → merge 到 main → Issue 自動關閉 → 刪除 feature branch
+```
+
+### 禁止事項
+
+- **DO NOT** 直接 commit 到 `main`
+- **DO NOT** 在未經 QA/QC 驗證的情況下合併 PR
+- **DO NOT** 保留已合併的 feature branch
