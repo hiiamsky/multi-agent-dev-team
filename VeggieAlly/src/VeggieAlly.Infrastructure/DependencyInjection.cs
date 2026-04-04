@@ -54,6 +54,9 @@ public static class DependencyInjection
         services.AddScoped<IVegetablePricingService, MockVegetablePricingService>();
         services.AddScoped<IPriceValidationService, PriceValidationService>();
 
+        // ── Flex Message Builder ──
+        services.AddSingleton<IFlexMessageBuilder, FlexMessageBuilder>();
+
         return services;
     }
 }

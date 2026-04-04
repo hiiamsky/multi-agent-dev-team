@@ -17,6 +17,7 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
     private readonly ILineReplyService _lineReplyService;
     private readonly IVegetablePricingService _pricingService;
     private readonly IPriceValidationService _validationService;
+    private readonly IFlexMessageBuilder _flexMessageBuilder;
     private readonly ILogger<ProcessTextMessageHandler> _logger;
 
     public ProcessTextMessageHandler(
@@ -24,12 +25,14 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
         ILineReplyService lineReplyService,
         IVegetablePricingService pricingService,
         IPriceValidationService validationService,
+        IFlexMessageBuilder flexMessageBuilder,
         ILogger<ProcessTextMessageHandler> logger)
     {
         _chatClient = chatClient;
         _lineReplyService = lineReplyService;
         _pricingService = pricingService;
         _validationService = validationService;
+        _flexMessageBuilder = flexMessageBuilder;
         _logger = logger;
     }
 
@@ -50,7 +53,8 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
         }
 
         // ── Step 1: 呼叫 Gemini API ──
-        string replyText;
+        List<ValidatedVegetableItem>? validatedItems = null;
+        string? fallbackText = null;
         try
         {
             var messages = new ChatMessage[]
@@ -68,29 +72,50 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             if (string.IsNullOrWhiteSpace(responseContent))
             {
                 _logger.LogWarning("Gemini 回傳空內容");
-                replyText = "解析失敗，請重新輸入";
+                fallbackText = "解析失敗，請重新輸入";
             }
             else if (!IsValidJson(responseContent))
             {
                 _logger.LogWarning("Gemini 回傳非 JSON 格式: {Content}", responseContent);
-                replyText = "解析失敗，請重新輸入";
+                fallbackText = "解析失敗，請重新輸入";
             }
             else
             {
                 // ── Step 1.5: 解析 JSON 並進行價格驗證 ──
-                replyText = await ProcessValidationAsync(responseContent, cancellationToken);
+                validatedItems = await ProcessValidationAsync(responseContent, cancellationToken);
+                if (validatedItems is null)
+                    fallbackText = "解析失敗，請重新輸入";
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Gemini API 呼叫失敗");
-            replyText = "系統忙碌中，請稍後重試";
+            fallbackText = "系統忙碌中，請稍後重試";
         }
 
         // ── Step 2: 回覆 LINE 使用者（獨立 try-catch） ──
         try
         {
-            await _lineReplyService.ReplyTextAsync(replyToken, replyText, cancellationToken);
+            if (validatedItems is not null)
+            {
+                try
+                {
+                    var bubble = _flexMessageBuilder.BuildBubble(validatedItems);
+                    var okCount = validatedItems.Count(i => i.Validation.Status == ValidationStatus.Ok);
+                    var anomalyCount = validatedItems.Count - okCount;
+                    var altText = $"📋 報價驗證結果：{okCount}項正常, {anomalyCount}項異常";
+                    await _lineReplyService.ReplyFlexAsync(replyToken, altText, bubble, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Flex Message 建構失敗，降級為純文字回覆");
+                    await _lineReplyService.ReplyTextAsync(replyToken, GenerateValidationReply(validatedItems), cancellationToken);
+                }
+            }
+            else
+            {
+                await _lineReplyService.ReplyTextAsync(replyToken, fallbackText!, cancellationToken);
+            }
             _logger.LogInformation("成功處理文字訊息並回覆");
         }
         catch (Exception ex)
@@ -99,7 +124,7 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
         }
     }
 
-    private async Task<string> ProcessValidationAsync(string jsonContent, CancellationToken cancellationToken)
+    private async Task<List<ValidatedVegetableItem>?> ProcessValidationAsync(string jsonContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -112,7 +137,7 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             if (parseResult?.Items == null || parseResult.Items.Count == 0)
             {
                 _logger.LogWarning("JSON 反序列化成功但無有效品項");
-                return "解析失敗，請重新輸入";
+                return null;
             }
 
             // 走訪每個 item，查歷史價 + 驗證
@@ -142,17 +167,17 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
             }
 
             // 產生回覆文字：用 🟢/🔴 標示每個品項的驗證結果
-            return GenerateValidationReply(validatedItems);
+            return validatedItems;
         }
         catch (JsonException ex)
         {
             _logger.LogError(ex, "JSON 反序列化失敗: {Json}", jsonContent);
-            return "解析失敗，請重新輸入";
+            return null;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "價格驗證過程發生錯誤");
-            return "系統忙碌中，請稍後重試";
+            return null;
         }
     }
 
