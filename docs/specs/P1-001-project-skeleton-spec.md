@@ -157,7 +157,7 @@ VeggieAlly/
 │   └── VeggieAlly.Application.Tests/
 │       └── VeggieAlly.Application.Tests.csproj
 │
-├── VeggieAlly.sln
+├── VeggieAlly.slnx
 ├── Directory.Build.props
 ├── .gitignore
 ├── Dockerfile
@@ -303,8 +303,8 @@ public sealed record ProcessTextMessageCommand(LineEvent Event) : IRequest;
 `LineEvents/ProcessText/ProcessTextMessageHandler.cs` 職責規格：
 1. 從 `Command.Event.Message.Text` 取得使用者輸入文字
 2. 組裝 `ChatMessage[]`：SystemPrompt（蔬菜解析指令）+ 使用者文字
-3. 呼叫 `IChatClient.CompleteAsync()`
-4. 從回傳內容擷取 JSON 字串
+3. 呼叫 `IChatClient.GetResponseAsync()`
+4. 從回傳內容驗證為合法 JSON（`JsonDocument.Parse`），非 JSON 則回傳「解析失敗，請重新輸入」
 5. 呼叫 `ILineReplyService.ReplyTextAsync()` 將 JSON 回傳給使用者
 6. **內部 try-catch**：Gemini 呼叫失敗時，改回傳錯誤訊息「解析失敗，請重新輸入」，**不拋出例外**
 
@@ -622,9 +622,9 @@ dotnet user-secrets set "Gemini:ApiKey" "<your-gemini-api-key>"
 | `events` 陣列為空 | Controller 直接回傳 `200 OK`，不分派任何 Command |
 | Event 非 `message` 類型或非 `text` 類型 | Controller 跳過該事件，Phase 1 僅處理文字 |
 | `replyToken` 為 `null`（Webhook 驗證事件） | Controller 跳過該事件 |
-| Gemini API 回傳非預期格式（非 JSON） | Handler catch → `ILineReplyService` 回覆「解析失敗，請重新輸入」 |
+| Gemini API 回傳非預期格式（非 JSON） | Handler 以 `JsonDocument.Parse` 驗證，失敗 → `ILineReplyService` 回覆「解析失敗，請重新輸入」 |
 | Gemini API 逾時或 HTTP 錯誤 | Handler catch → `ILineReplyService` 回覆「系統忙碌中，請稍後重試」→ 記錄 `ILogger.LogError` |
-| LINE Reply API 失敗 | Handler catch → 僅記錄 `ILogger.LogWarning`，不再嘗試（無法回覆） |
+| LINE Reply API 失敗 | `LineReplyService` 內部 catch → 僅記錄 `ILogger.LogWarning`，不拋出例外。Handler 的 LINE 回覆為獨立 try-catch，不與 Gemini 失敗路徑混合 |
 | Request Body 反序列化失敗 | ASP.NET Core 內建回傳 `400 Bad Request`（此時 Filter 尚未執行，不影響安全性） |
 
 ---
@@ -637,7 +637,7 @@ dotnet user-secrets set "Gemini:ApiKey" "<your-gemini-api-key>"
 # 0. 確認 .NET 10 SDK
 dotnet --version  # 應為 10.x.xxx
 
-# 1. 建立 Solution
+# 1. 建立 Solution（.NET 10 預設產生 .slnx 格式）
 dotnet new sln -n VeggieAlly -o VeggieAlly
 cd VeggieAlly
 
