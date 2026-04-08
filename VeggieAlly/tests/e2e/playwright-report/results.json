@@ -1,0 +1,262 @@
+{
+  "config": {
+    "configFile": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/playwright.config.ts",
+    "rootDir": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "playwright-report/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "inventory.spec.ts",
+      "file": "inventory.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Happy Path — GET /api/menu/today 回傳 200 及品項陣列",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 96,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m10\u001b[39m\nReceived: \u001b[31m7\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m10\u001b[39m\nReceived: \u001b[31m7\u001b[39m\n    at /Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/tests/inventory.spec.ts:87:32",
+                    "location": {
+                      "file": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/tests/inventory.spec.ts",
+                      "column": 32,
+                      "line": 87
+                    },
+                    "snippet": "  85 |   const item1 = body.items.find((i) => i.id === SEED_ITEM_1_ID);\n  86 |   expect(item1, '品項 1（E2E 測試青菜）應存在於 items 中').toBeDefined();\n> 87 |   expect(item1!.remaining_qty).toBe(SEED_ITEM_1_INITIAL_QTY);\n     |                                ^\n  88 |   expect(item1!.unit).toBe('斤');\n  89 |\n  90 |   const item2 = body.items.find((i) => i.id === SEED_ITEM_2_ID);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/tests/inventory.spec.ts",
+                        "column": 32,
+                        "line": 87
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m10\u001b[39m\nReceived: \u001b[31m7\u001b[39m\n\n  85 |   const item1 = body.items.find((i) => i.id === SEED_ITEM_1_ID);\n  86 |   expect(item1, '品項 1（E2E 測試青菜）應存在於 items 中').toBeDefined();\n> 87 |   expect(item1!.remaining_qty).toBe(SEED_ITEM_1_INITIAL_QTY);\n     |                                ^\n  88 |   expect(item1!.unit).toBe('斤');\n  89 |\n  90 |   const item2 = body.items.find((i) => i.id === SEED_ITEM_2_ID);\n    at /Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/tests/inventory.spec.ts:87:32"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-04-08T12:13:10.795Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/test-results/inventory-Happy-Path-—-GET-api-menu-today-回傳-200-及品項陣列/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/test-results/inventory-Happy-Path-—-GET-api-menu-today-回傳-200-及品項陣列/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/test-results/inventory-Happy-Path-—-GET-api-menu-today-回傳-200-及品項陣列/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/skyhsieh/sky/skylab/mulAgent/VeggieAlly/tests/e2e/tests/inventory.spec.ts",
+                    "column": 32,
+                    "line": 87
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "491382254a121adeeb47-6633f3390265b52ff4bf",
+          "file": "inventory.spec.ts",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "title": "Happy Path — PATCH /api/menu/inventory 扣除 3 單位後 remaining_qty 正確遞減",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 69,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-04-08T12:13:11.382Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "491382254a121adeeb47-1e22a1fb94b9c18481a9",
+          "file": "inventory.spec.ts",
+          "line": 98,
+          "column": 5
+        },
+        {
+          "title": "Edge Case — PATCH 超量請求應回 409，且 DB remaining_qty 不變",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-04-08T12:13:11.463Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "491382254a121adeeb47-cdc07d699a1116fdb68e",
+          "file": "inventory.spec.ts",
+          "line": 140,
+          "column": 5
+        },
+        {
+          "title": "Edge Case — 無菜單租戶的 GET /api/menu/today 應回 404",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 27,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-04-08T12:13:11.487Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "491382254a121adeeb47-d103ef9509af86410f79",
+          "file": "inventory.spec.ts",
+          "line": 181,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-04-08T12:13:10.320Z",
+    "duration": 1225.725,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

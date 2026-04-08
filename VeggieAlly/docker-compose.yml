@@ -22,8 +22,8 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5000:8080"
-      - "5001:8081"
+      - "5010:8080"
+      - "5011:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__PostgreSQL=Host=postgres;Database=veggieally;Username=veggie;Password=veggie_dev

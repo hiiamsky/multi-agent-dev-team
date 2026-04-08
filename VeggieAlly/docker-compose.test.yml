@@ -1,0 +1,69 @@
+# docker-compose.test.yml — Testing 環境 overlay
+#
+# 使用方式：
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+#
+# 此 overlay 作用：
+#   1. 覆寫 veggie-ally 服務環境為 Testing（啟用 LiffAuthFilter mock bypass）
+#   2. 加入 db-init 一次性容器，執行 DB schema migration
+#   3. 以 dummy 值替換所有需要真實憑證的 secrets（LINE / Gemini / Ollama）
+#   4. 讓 veggie-ally 等待 db-init 完成後才啟動
+#
+# 安全說明：
+#   X-Test-Auth bypass 僅在 ASPNETCORE_ENVIRONMENT=Testing 時生效。
+#   Production / Development 環境完全無效。
+#   此檔案嚴禁用於正式環境部署。
+
+services:
+  # ─── PostgreSQL healthcheck（讓 db-init 等到 DB 真正就緒）────────────────
+  postgres:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veggie -d veggieally"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # ─── DB 初始化（一次性，執行 migration SQL）──────────────────────────────
+  db-init:
+    image: postgres:16-alpine
+    environment:
+      PGPASSWORD: veggie_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        echo '=== Running DB migrations ===' &&
+        psql -h postgres -U veggie -d veggieally -f /migrations/001_create_published_menus.sql &&
+        psql -h postgres -U veggie -d veggieally -f /migrations/002_ensure_published_menus_unique_constraint.sql &&
+        echo '=== Migrations completed ==='
+    volumes:
+      - ./db/migrations:/migrations:ro
+    restart: "no"
+    networks:
+      - default
+
+  # ─── API 服務：覆寫為 Testing 環境 ───────────────────────────────────────
+  veggie-ally:
+    environment:
+      # Testing 環境：啟用 LiffAuthFilter X-Test-Auth bypass
+      - ASPNETCORE_ENVIRONMENT=Testing
+      # LINE：dummy 值（Testing 環境不需真實 LINE token 驗證）
+      - Line__ChannelSecret=dummy-for-testing-not-real
+      - Line__ChannelAccessToken=dummy-for-testing-not-real
+      - Line__TenantId=test-tenant
+      - Line__LiffBaseUrl=https://liff.testing.example.com
+      # AI：使用 Ollama provider（factory lazy init，E2E 測試不觸發 AI 路徑）
+      - AI__Provider=ollama
+      - Ollama__Endpoint=http://localhost:11434/v1
+      - Ollama__ModelId=test-model-not-used
+      # Gemini：dummy（不使用）
+      - Gemini__ApiKey=dummy-for-testing-not-real
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started

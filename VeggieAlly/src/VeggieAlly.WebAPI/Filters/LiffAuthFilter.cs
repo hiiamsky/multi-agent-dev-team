@@ -14,16 +14,45 @@ public class LiffAuthFilter : IAsyncActionFilter
     private readonly ILineTokenService _tokenService;
     private readonly LineOptions _lineOptions;
     private readonly ILogger<LiffAuthFilter> _logger;
+    private readonly IWebHostEnvironment _environment;
 
-    public LiffAuthFilter(ILineTokenService tokenService, IOptions<LineOptions> lineOptions, ILogger<LiffAuthFilter> logger)
+    public LiffAuthFilter(
+        ILineTokenService tokenService,
+        IOptions<LineOptions> lineOptions,
+        ILogger<LiffAuthFilter> logger,
+        IWebHostEnvironment environment)
     {
         _tokenService = tokenService;
         _lineOptions = lineOptions.Value;
         _logger = logger;
+        _environment = environment;
     }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
+        // ── Testing 環境 Mock Auth Bypass ──────────────────────────────────────
+        // 此路徑嚴格限定在 Testing 環境，Production/Development 完全無效。
+        // 觸發條件：ASPNETCORE_ENVIRONMENT=Testing AND X-Test-Auth: true header
+        if (_environment.IsEnvironment("Testing") &&
+            context.HttpContext.Request.Headers.TryGetValue("X-Test-Auth", out var testAuthHeader) &&
+            testAuthHeader.ToString() == "true")
+        {
+            var testTenantId = context.HttpContext.Request.Headers["X-Test-TenantId"].ToString();
+            var testUserId   = context.HttpContext.Request.Headers["X-Test-LineUserId"].ToString();
+            var testDisplay  = context.HttpContext.Request.Headers["X-Test-DisplayName"].ToString();
+
+            context.HttpContext.Items["TenantId"]         = string.IsNullOrEmpty(testTenantId) ? "test-tenant" : testTenantId;
+            context.HttpContext.Items["LineUserId"]        = string.IsNullOrEmpty(testUserId)   ? "test-user"   : testUserId;
+            context.HttpContext.Items["LineDisplayName"]   = string.IsNullOrEmpty(testDisplay)  ? "Test User"   : testDisplay;
+
+            _logger.LogDebug("Testing mock auth: TenantId={TenantId}, UserId={UserId}",
+                context.HttpContext.Items["TenantId"], context.HttpContext.Items["LineUserId"]);
+
+            await next();
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         // 提取 Authorization header
         if (!context.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader) ||
             authHeader.Count == 0)

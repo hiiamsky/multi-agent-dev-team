@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
+using Dapper;
 using Npgsql;
 using OpenAI;
 using StackExchange.Redis;
@@ -22,6 +23,10 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // ── Dapper 全域型別處理器 ──
+        // DateOnly 在 Dapper 預設不受支援，需要手動註冊 TypeHandler
+        SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+
         // ── LINE ──
         services.Configure<LineOptions>(configuration.GetSection("Line"));
         services.AddHttpClient<ILineReplyService, LineReplyService>((sp, client) =>

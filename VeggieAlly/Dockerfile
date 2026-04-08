@@ -9,6 +9,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+COPY ["Directory.Build.props", "Directory.Build.props"]
 COPY ["src/VeggieAlly.WebAPI/VeggieAlly.WebAPI.csproj", "src/VeggieAlly.WebAPI/"]
 COPY ["src/VeggieAlly.Application/VeggieAlly.Application.csproj", "src/VeggieAlly.Application/"]
 COPY ["src/VeggieAlly.Domain/VeggieAlly.Domain.csproj", "src/VeggieAlly.Domain/"]

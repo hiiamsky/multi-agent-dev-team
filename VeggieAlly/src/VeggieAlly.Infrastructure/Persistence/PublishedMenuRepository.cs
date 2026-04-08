@@ -50,7 +50,8 @@ public sealed class PublishedMenuRepository : IPublishedMenuRepository
             Id = menu.id,
             TenantId = menu.tenant_id,
             PublishedByUserId = menu.published_by,
-            Date = menu.date,
+            // Dapper dynamic 查詢回傳 date 欄位為 DateTime，需轉換為 DateOnly
+            Date = DateOnly.FromDateTime((DateTime)menu.date),
             PublishedAt = menu.published_at,
             Items = items.Select(item => new PublishedMenuItem
             {
