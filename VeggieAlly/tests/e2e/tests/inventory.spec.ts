@@ -156,10 +156,11 @@ test('Edge Case — PATCH 超量請求應回 409，且 DB remaining_qty 不變',
   });
 
   // Assert — 應回 409 Conflict（InsufficientStockException）
+  // 規格 P3-002 L134/L548：庫存不足 → 409 Conflict；400 僅用於 DTO validation 錯誤
   expect(
-    [409, 400],
-    `Expected 409 or 400, got ${response.status()}. Body: ${await response.text()}`,
-  ).toContain(response.status());
+    response.status(),
+    `Expected 409 (InsufficientStockException), got ${response.status()}. Body: ${await response.text()}`,
+  ).toBe(409);
 
   const body = await response.json() as { error?: { code?: string } };
   // 如果後端明確回傳 error code，驗證它

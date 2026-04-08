@@ -5,7 +5,7 @@ import { defineConfig } from '@playwright/test';
  *
  * 測試對象：API 端點（不需要 browser，使用 request fixture）
  * 環境：docker-compose.test.yml 啟動的本地容器
- * 服務 URL：http://localhost:5000（veggie-ally 容器對外 port）
+ * 服務 URL：http://localhost:5010（veggie-ally 容器對外 port，docker-compose.test.yml: 5010:8080）
  */
 export default defineConfig({
   testDir: './tests',
