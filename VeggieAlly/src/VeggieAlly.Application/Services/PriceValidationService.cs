@@ -13,8 +13,8 @@ public sealed class PriceValidationService : IPriceValidationService
     /// </summary>
     public ValidationResult Validate(decimal buyPrice, decimal sellPrice, decimal? historicalAvgPrice)
     {
-        // 規則 1（優先）：sellPrice <= buyPrice → Anomaly
-        if (sellPrice <= buyPrice)
+        // 規則 1（優先）：sellPrice <= buyPrice → Anomaly（但 sellPrice == 0 表示未設定售價，不判定為異常）
+        if (sellPrice > 0 && sellPrice <= buyPrice)
         {
             return ValidationResult.Anomaly("售價低於或等於進價");
         }

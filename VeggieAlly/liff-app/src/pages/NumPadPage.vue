@@ -149,6 +149,12 @@ function handleInput(digit: string): void {
       inputValue.value = current + '00'
     }
   } else {
+    // 防護前導零：當前值為 '0' 且輸入的不是 '00' 時，直接替換為新數字
+    if (current === '0' && digit !== '00') {
+      inputValue.value = digit
+      return
+    }
+    
     if (current.length < 5) {
       inputValue.value = current + digit
     }

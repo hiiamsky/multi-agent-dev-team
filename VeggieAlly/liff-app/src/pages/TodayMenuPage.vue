@@ -108,9 +108,14 @@ async function loadMenu(): Promise<void> {
   loading.value = true
   
   try {
-    // 這裡需要取得 tenant_id，根據規格說明可能需要從 LIFF 初始化或其他方式取得
-    // 暫時使用固定值，實際應該要有方法取得當前租戶 ID
-    const tenantId = 'default-tenant-id'
+    // 從環境變數或 URL query string 取得 tenant_id
+    const tenantId = import.meta.env.VITE_TENANT_ID
+      || new URLSearchParams(window.location.search).get('tenantId')
+      || ''
+
+    if (!tenantId) {
+      console.warn('[VeggieAlly] VITE_TENANT_ID not set and tenantId not in URL')
+    }
     
     const response = await api.get<TodayMenuResponse>('/api/menu/today', {
       tenant_id: tenantId

@@ -137,12 +137,12 @@ public class PriceValidationServiceTests
     }
 
     [Fact]
-    public void Validate_HistoricalPriceIsZero_ReturnsOk()
+    public void Validate_SellPriceIsZero_ReturnsOk()
     {
         // Arrange
-        var buyPrice = 25m;
-        var sellPrice = 35m;
-        var historicalAvgPrice = 0m;
+        var buyPrice = 50m;
+        var sellPrice = 0m; // 未設定售價
+        var historicalAvgPrice = 48m;
 
         // Act
         var result = _service.Validate(buyPrice, sellPrice, historicalAvgPrice);

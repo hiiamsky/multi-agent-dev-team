@@ -145,7 +145,10 @@ public sealed class ValidationReplyService : IValidationReplyService
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "JSON 反序列化失敗: {Json}", jsonContent);
+            var truncated = jsonContent?.Length > 200
+                ? jsonContent[..200] + "...[truncated]"
+                : jsonContent;
+            _logger.LogError(ex, "JSON 反序列化失敗 (長度={Length}): {Json}", jsonContent?.Length, truncated);
             return null;
         }
         catch (Exception ex)
