@@ -350,16 +350,39 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
         // 添加 LIFF 修正按鈕 (如果有 liffBaseUrl)
         if (!string.IsNullOrWhiteSpace(liffBaseUrl))
         {
+            // 建立兩個按鈕：修正進貨價、修正售價
             contents.Add(new Dictionary<string, object>
             {
-                ["type"] = "button",
-                ["height"] = "sm",
-                ["style"] = "secondary",
-                ["action"] = new Dictionary<string, object>
+                ["type"] = "box",
+                ["layout"] = "horizontal",
+                ["spacing"] = "sm",
+                ["margin"] = "xs",
+                ["contents"] = new List<object>
                 {
-                    ["type"] = "uri",
-                    ["label"] = "✏️ 修正",
-                    ["uri"] = $"{liffBaseUrl}?item_id={item.Id}&field=buy_price"
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "button",
+                        ["height"] = "sm",
+                        ["style"] = "secondary",
+                        ["action"] = new Dictionary<string, object>
+                        {
+                            ["type"] = "uri",
+                            ["label"] = "✏️ 修正進價",
+                            ["uri"] = $"{liffBaseUrl}/numpad?itemId={Uri.EscapeDataString(item.Id.ToString())}&itemName={Uri.EscapeDataString(item.Name)}&buyPrice={Uri.EscapeDataString(item.BuyPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&sellPrice={Uri.EscapeDataString(item.SellPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&field=buy_price"
+                        }
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "button",
+                        ["height"] = "sm",
+                        ["style"] = "secondary",
+                        ["action"] = new Dictionary<string, object>
+                        {
+                            ["type"] = "uri",
+                            ["label"] = "✏️ 修正售價",
+                            ["uri"] = $"{liffBaseUrl}/numpad?itemId={Uri.EscapeDataString(item.Id.ToString())}&itemName={Uri.EscapeDataString(item.Name)}&buyPrice={Uri.EscapeDataString(item.BuyPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&sellPrice={Uri.EscapeDataString(item.SellPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&field=sell_price"
+                        }
+                    }
                 }
             });
         }

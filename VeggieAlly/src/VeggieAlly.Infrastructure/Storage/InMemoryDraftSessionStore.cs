@@ -61,6 +61,35 @@ public sealed class InMemoryDraftSessionStore : IDraftSessionStore
     private static string BuildKey(string tenantId, string lineUserId, DateOnly date)
         => $"{tenantId}:draft:{lineUserId}:{date:yyyy-MM-dd}";
 
+    /// <summary>
+    /// 移除所有過期的 Draft Session 項目
+    /// </summary>
+    /// <returns>移除的項目數量</returns>
+    internal int RemoveExpiredEntries()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var expiredKeys = new List<string>();
+
+        foreach (var kvp in _store)
+        {
+            if (kvp.Value.Expiry < now)
+            {
+                expiredKeys.Add(kvp.Key);
+            }
+        }
+
+        var removedCount = 0;
+        foreach (var key in expiredKeys)
+        {
+            if (_store.TryRemove(key, out _))
+            {
+                removedCount++;
+            }
+        }
+
+        return removedCount;
+    }
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
