@@ -83,34 +83,40 @@ public sealed class PublishedMenuRepository : IPublishedMenuRepository
 
             await connection.ExecuteAsync(menuSql, menu, transaction);
 
-            // 批次插入菜單品項
-            var itemSql = """
-                INSERT INTO published_menu_items (
-                    id, menu_id, tenant_id, name, is_new, buy_price, sell_price, 
-                    original_qty, remaining_qty, unit, historical_avg_price
-                )
-                VALUES (
-                    @Id, @MenuId, @TenantId, @Name, @IsNew, @BuyPrice, @SellPrice, 
-                    @OriginalQty, @RemainingQty, @Unit, @HistoricalAvgPrice
-                )
-                """;
-
-            var itemParams = menu.Items.Select(item => new
+            // 真正批次插入菜單品項（單一 SQL 語句 + 多 VALUES）
+            if (menu.Items.Count > 0)
             {
-                Id = item.Id,
-                MenuId = item.MenuId,
-                TenantId = menu.TenantId, // 為安全考量，使用菜單的 TenantId
-                Name = item.Name,
-                IsNew = item.IsNew,
-                BuyPrice = item.BuyPrice,
-                SellPrice = item.SellPrice,
-                OriginalQty = item.OriginalQty,
-                RemainingQty = item.RemainingQty,
-                Unit = item.Unit,
-                HistoricalAvgPrice = item.HistoricalAvgPrice
-            }).ToArray();
+                var parameters = new DynamicParameters();
+                var valueClauses = new List<string>();
+                int i = 0;
+                
+                foreach (var item in menu.Items)
+                {
+                    valueClauses.Add($"(@Id{i}, @MenuId{i}, @TenantId{i}, @Name{i}, @IsNew{i}, @BuyPrice{i}, @SellPrice{i}, @OriginalQty{i}, @RemainingQty{i}, @Unit{i}, @HistoricalAvgPrice{i})");
+                    parameters.Add($"Id{i}", item.Id);
+                    parameters.Add($"MenuId{i}", item.MenuId);
+                    parameters.Add($"TenantId{i}", menu.TenantId); // 為安全考量，使用菜單的 TenantId
+                    parameters.Add($"Name{i}", item.Name);
+                    parameters.Add($"IsNew{i}", item.IsNew);
+                    parameters.Add($"BuyPrice{i}", item.BuyPrice);
+                    parameters.Add($"SellPrice{i}", item.SellPrice);
+                    parameters.Add($"OriginalQty{i}", item.OriginalQty);
+                    parameters.Add($"RemainingQty{i}", item.RemainingQty);
+                    parameters.Add($"Unit{i}", item.Unit);
+                    parameters.Add($"HistoricalAvgPrice{i}", item.HistoricalAvgPrice);
+                    i++;
+                }
 
-            await connection.ExecuteAsync(itemSql, itemParams, transaction);
+                var batchItemSql = $"""
+                    INSERT INTO published_menu_items (
+                        id, menu_id, tenant_id, name, is_new, buy_price, sell_price, 
+                        original_qty, remaining_qty, unit, historical_avg_price
+                    )
+                    VALUES {string.Join(", ", valueClauses)}
+                    """;
+
+                await connection.ExecuteAsync(batchItemSql, parameters, transaction);
+            }
 
             await transaction.CommitAsync(ct);
         }
