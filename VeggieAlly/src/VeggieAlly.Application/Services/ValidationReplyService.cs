@@ -53,7 +53,11 @@ public sealed class ValidationReplyService : IValidationReplyService
         }
         else if (!IsValidJson(responseContent))
         {
-            _logger.LogWarning("LLM 回傳非 JSON 格式: {Content}", responseContent);
+            var truncatedContent = responseContent?.Length > 200
+                ? responseContent[..200] + "...[truncated]"
+                : responseContent;
+            _logger.LogWarning("LLM 回傳非 JSON 格式 (長度={Length}): {Content}",
+                responseContent?.Length, truncatedContent);
             fallbackText = "解析失敗，請重新輸入";
         }
         else
