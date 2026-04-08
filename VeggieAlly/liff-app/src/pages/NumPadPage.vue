@@ -79,7 +79,13 @@ const itemId = computed(() => {
 })
 const field = computed(() => {
   const value = route.query.field
-  return typeof value === 'string' ? value : ''
+  if (typeof value === 'string') {
+    return value
+  }
+  
+  // Graceful fallback: 缺少 field 參數時預設為 buy_price
+  console.warn('URL 缺少 field 參數，預設使用 buy_price')
+  return 'buy_price'
 })
 
 // 新增：從 URL 讀取品項資料
@@ -124,11 +130,7 @@ function validateQueryParams(): void {
     return
   }
   
-  if (!field.value) {
-    validationError.value = '缺少欄位參數'
-    return
-  }
-  
+  // 移除 field 參數的強制檢查，改為在 computed 中處理 fallback
   if (!validFields.includes(field.value)) {
     validationError.value = '無效的欄位參數'
     return
