@@ -20,7 +20,7 @@ public sealed class GetTodayMenuHandler : IRequestHandler<GetTodayMenuQuery, Pub
 
     public async Task<PublishedMenu?> Handle(GetTodayMenuQuery request, CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DateOnly.FromDateTime(TimeProvider.System.GetUtcNow().AddHours(8).DateTime);
 
         // 1. 首先查詢 Redis 快取
         try

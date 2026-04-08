@@ -25,7 +25,7 @@ public sealed class DeductInventoryHandler : IRequestHandler<DeductInventoryComm
         if (request.Amount <= 0)
             throw new ArgumentException("扣除數量必須大於 0", nameof(request.Amount));
 
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DateOnly.FromDateTime(TimeProvider.System.GetUtcNow().AddHours(8).DateTime);
 
         // 1. 庫存扣除（樂觀鎖）
         var affected = await _repository.DeductItemStockAsync(
@@ -53,7 +53,8 @@ public sealed class DeductInventoryHandler : IRequestHandler<DeductInventoryComm
         }
 
         // 5. 回傳更新後的品項
-        var updatedItem = updatedMenu.Items.First(i => i.Id == request.ItemId);
+        var updatedItem = updatedMenu.Items.FirstOrDefault(i => i.Id == request.ItemId)
+            ?? throw new ArgumentException($"Item {request.ItemId} not found after deduction");
         return updatedItem;
     }
 }

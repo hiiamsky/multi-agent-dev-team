@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using VeggieAlly.Application.Common.Interfaces;
 using VeggieAlly.Domain.Models.Line;
 
@@ -12,11 +13,13 @@ public sealed class LineTokenService : ILineTokenService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<LineTokenService> _logger;
+    private readonly LineOptions _lineOptions;
 
-    public LineTokenService(HttpClient httpClient, ILogger<LineTokenService> logger)
+    public LineTokenService(HttpClient httpClient, ILogger<LineTokenService> logger, IOptions<LineOptions> lineOptions)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _lineOptions = lineOptions.Value;
     }
 
     public async Task<LineTokenClaim?> VerifyAccessTokenAsync(string accessToken, CancellationToken ct = default)
@@ -38,6 +41,14 @@ public sealed class LineTokenService : ILineTokenService
             if (verifyResult?.ExpiresIn <= 0)
             {
                 _logger.LogWarning("LINE Access Token 已過期");
+                return null;
+            }
+
+            // 驗證 client_id 是否符合本應用的 LINE Channel ID
+            if (verifyResult?.ClientId != _lineOptions.ChannelId)
+            {
+                _logger.LogWarning("Token client_id mismatch: expected {Expected}, got {Actual}",
+                    _lineOptions.ChannelId, verifyResult?.ClientId);
                 return null;
             }
 

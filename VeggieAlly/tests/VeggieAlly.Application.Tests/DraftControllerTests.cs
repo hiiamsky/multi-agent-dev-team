@@ -26,6 +26,7 @@ public sealed class DraftControllerTests
         {
             ChannelSecret = "test-secret",
             ChannelAccessToken = "test-token",
+            ChannelId = "test-channel-id",
             TenantId = "default"
         });
         _controller = new DraftController(_mediator, lineOptions, _logger);

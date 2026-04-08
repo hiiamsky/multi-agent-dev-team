@@ -2,6 +2,7 @@ using System.Text.Json;
 using Dapper;
 using Npgsql;
 using VeggieAlly.Application.Common.Interfaces;
+using VeggieAlly.Domain.Exceptions;
 using VeggieAlly.Domain.Models.Menu;
 
 namespace VeggieAlly.Infrastructure.Persistence;
@@ -113,6 +114,11 @@ public sealed class PublishedMenuRepository : IPublishedMenuRepository
             }
 
             await transaction.CommitAsync(ct);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "23505")
+        {
+            await transaction.RollbackAsync(ct);
+            throw new MenuAlreadyPublishedException();
         }
         catch
         {

@@ -20,6 +20,14 @@ public sealed class InventoryControllerTests
     public InventoryControllerTests()
     {
         _controller = new InventoryController(_mediator, _logger);
+        
+        // 設置 HttpContext.Items 模擬認證資訊
+        var httpContext = new DefaultHttpContext();
+        httpContext.Items["TenantId"] = "tenant-1";
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
     }
 
     [Fact]
@@ -37,7 +45,7 @@ public sealed class InventoryControllerTests
             .Returns(updatedItem);
 
         var request = new DeductInventoryRequest { ItemId = "item-1", Amount = 2 };
-        var result = await _controller.DeductInventory("tenant-1", request, CancellationToken.None);
+        var result = await _controller.DeductInventory(request, CancellationToken.None);
 
         Assert.IsType<OkObjectResult>(result);
     }
@@ -49,18 +57,25 @@ public sealed class InventoryControllerTests
             .ThrowsAsync(new InsufficientStockException("item-1"));
 
         var request = new DeductInventoryRequest { ItemId = "item-1", Amount = 100 };
-        var result = await _controller.DeductInventory("tenant-1", request, CancellationToken.None);
+        var result = await _controller.DeductInventory(request, CancellationToken.None);
 
         Assert.IsType<ConflictObjectResult>(result);
     }
 
     [Fact]
-    public async Task Deduct_MissingTenantId_Returns400()
+    public async Task Deduct_MissingTenantId_Returns401()
     {
-        var request = new DeductInventoryRequest { ItemId = "item-1", Amount = 2 };
-        var result = await _controller.DeductInventory("", request, CancellationToken.None);
+        // 設置空的 HttpContext.Items 來模擬缺少認證資訊的情況
+        var httpContext = new DefaultHttpContext();
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
 
-        Assert.IsType<BadRequestObjectResult>(result);
+        var request = new DeductInventoryRequest { ItemId = "item-1", Amount = 2 };
+        var result = await _controller.DeductInventory(request, CancellationToken.None);
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
     }
 
     [Fact]
@@ -70,7 +85,7 @@ public sealed class InventoryControllerTests
             .ThrowsAsync(new ArgumentException("扣除數量必須大於 0"));
 
         var request = new DeductInventoryRequest { ItemId = "item-1", Amount = 1 };
-        var result = await _controller.DeductInventory("tenant-1", request, CancellationToken.None);
+        var result = await _controller.DeductInventory(request, CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
@@ -82,7 +97,7 @@ public sealed class InventoryControllerTests
             .ThrowsAsync(new MenuNotPublishedException());
 
         var request = new DeductInventoryRequest { ItemId = "item-1", Amount = 2 };
-        var result = await _controller.DeductInventory("tenant-1", request, CancellationToken.None);
+        var result = await _controller.DeductInventory(request, CancellationToken.None);
 
         Assert.IsType<NotFoundObjectResult>(result);
     }
