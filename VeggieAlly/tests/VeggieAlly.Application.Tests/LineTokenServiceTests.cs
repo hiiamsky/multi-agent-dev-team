@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using VeggieAlly.Infrastructure.Line;
 
@@ -10,6 +11,12 @@ namespace VeggieAlly.Application.Tests;
 public sealed class LineTokenServiceTests
 {
     private readonly ILogger<LineTokenService> _logger = Substitute.For<ILogger<LineTokenService>>();
+    private readonly IOptions<LineOptions> _lineOptions = Options.Create(new LineOptions
+    {
+        ChannelSecret = "secret",
+        ChannelAccessToken = "token",
+        ChannelId = "123"
+    });
 
     private static HttpClient CreateMockHttpClient(
         HttpStatusCode verifyStatus, string verifyBody,
@@ -26,7 +33,7 @@ public sealed class LineTokenServiceTests
         var client = CreateMockHttpClient(
             HttpStatusCode.OK, """{"scope":"profile","client_id":"123","expires_in":3600}""",
             HttpStatusCode.OK, """{"user_id":"U123","display_name":"TestUser"}""");
-        var service = new LineTokenService(client, _logger);
+        var service = new LineTokenService(client, _logger, _lineOptions);
 
         var result = await service.VerifyAccessTokenAsync("valid_token");
 
@@ -42,7 +49,7 @@ public sealed class LineTokenServiceTests
         var client = CreateMockHttpClient(
             HttpStatusCode.OK, """{"scope":"profile","client_id":"123","expires_in":0}""",
             HttpStatusCode.OK, """{"user_id":"U123","display_name":"TestUser"}""");
-        var service = new LineTokenService(client, _logger);
+        var service = new LineTokenService(client, _logger, _lineOptions);
 
         var result = await service.VerifyAccessTokenAsync("expired_token");
 
@@ -56,7 +63,7 @@ public sealed class LineTokenServiceTests
         var client = CreateMockHttpClient(
             HttpStatusCode.BadRequest, """{"error":"invalid_request"}""",
             HttpStatusCode.OK, "");
-        var service = new LineTokenService(client, _logger);
+        var service = new LineTokenService(client, _logger, _lineOptions);
 
         var result = await service.VerifyAccessTokenAsync("invalid_token");
 
@@ -69,7 +76,7 @@ public sealed class LineTokenServiceTests
     {
         var handler = new TimeoutHttpMessageHandler();
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://api.line.me") };
-        var service = new LineTokenService(client, _logger);
+        var service = new LineTokenService(client, _logger, _lineOptions);
 
         var result = await service.VerifyAccessTokenAsync("some_token");
 

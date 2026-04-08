@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -22,6 +23,15 @@ public sealed class MenuControllerTests
     public MenuControllerTests()
     {
         _controller = new MenuController(_mediator, _logger);
+        
+        // 設置 HttpContext.Items 模擬認證資訊
+        var httpContext = new DefaultHttpContext();
+        httpContext.Items["TenantId"] = "tenant-1";
+        httpContext.Items["LineUserId"] = "user-1";
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
     }
 
     private static PublishedMenu CreateMenu() => new()
@@ -50,7 +60,7 @@ public sealed class MenuControllerTests
         _mediator.Send(Arg.Any<PublishMenuCommand>(), Arg.Any<CancellationToken>())
             .Returns(CreateMenu());
 
-        var result = await _controller.PublishMenu("tenant-1", "user-1", CancellationToken.None);
+        var result = await _controller.PublishMenu(CancellationToken.None);
 
         Assert.IsType<CreatedAtActionResult>(result);
     }
@@ -61,7 +71,7 @@ public sealed class MenuControllerTests
         _mediator.Send(Arg.Any<PublishMenuCommand>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new MenuAlreadyPublishedException());
 
-        var result = await _controller.PublishMenu("tenant-1", "user-1", CancellationToken.None);
+        var result = await _controller.PublishMenu(CancellationToken.None);
 
         Assert.IsType<ConflictObjectResult>(result);
     }
@@ -72,7 +82,7 @@ public sealed class MenuControllerTests
         _mediator.Send(Arg.Any<PublishMenuCommand>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new MenuNotPublishedException());
 
-        var result = await _controller.PublishMenu("tenant-1", "user-1", CancellationToken.None);
+        var result = await _controller.PublishMenu(CancellationToken.None);
 
         Assert.IsType<NotFoundObjectResult>(result);
     }
@@ -83,7 +93,7 @@ public sealed class MenuControllerTests
         _mediator.Send(Arg.Any<GetTodayMenuQuery>(), Arg.Any<CancellationToken>())
             .Returns(CreateMenu());
 
-        var result = await _controller.GetTodayMenu("tenant-1", CancellationToken.None);
+        var result = await _controller.GetTodayMenu(CancellationToken.None);
 
         Assert.IsType<OkObjectResult>(result);
     }
@@ -94,17 +104,24 @@ public sealed class MenuControllerTests
         _mediator.Send(Arg.Any<GetTodayMenuQuery>(), Arg.Any<CancellationToken>())
             .Returns((PublishedMenu?)null);
 
-        var result = await _controller.GetTodayMenu("tenant-1", CancellationToken.None);
+        var result = await _controller.GetTodayMenu(CancellationToken.None);
 
         Assert.IsType<NotFoundObjectResult>(result);
     }
 
     [Fact]
-    public async Task GetToday_EmptyTenantId_Returns400()
+    public async Task GetToday_EmptyTenantId_Returns401()
     {
-        var result = await _controller.GetTodayMenu("", CancellationToken.None);
+        // 設置空的 HttpContext.Items 來模擬缺少認證資訊的情況
+        var httpContext = new DefaultHttpContext();
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
 
-        Assert.IsType<BadRequestObjectResult>(result);
+        var result = await _controller.GetTodayMenu(CancellationToken.None);
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
     }
 
     [Fact]
@@ -113,7 +130,7 @@ public sealed class MenuControllerTests
         _mediator.Send(Arg.Any<UnpublishMenuCommand>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new NotImplementedException("撤回功能将在後續版本實作"));
 
-        var result = await _controller.UnpublishMenu("tenant-1", CancellationToken.None);
+        var result = await _controller.UnpublishMenu(CancellationToken.None);
 
         var objResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(501, objResult.StatusCode);

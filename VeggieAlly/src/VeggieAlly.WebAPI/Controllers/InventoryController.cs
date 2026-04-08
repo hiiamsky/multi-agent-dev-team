@@ -27,12 +27,17 @@ public sealed class InventoryController : ControllerBase
     [LiffAuth]
     [HttpPatch("inventory")]
     public async Task<IActionResult> DeductInventory(
-        [FromHeader(Name = "X-Tenant-Id")] string? tenantId,
         [FromBody] DeductInventoryRequest request,
         CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
-            return BadRequest(new { error = new { code = "MISSING_TENANT", message = "Missing tenant ID" } });
+        if (!HttpContext.Items.TryGetValue("TenantId", out var tenantIdValue) ||
+            string.IsNullOrWhiteSpace(tenantIdValue?.ToString()))
+        {
+            _logger.LogWarning("Missing authentication context in {Action}", nameof(DeductInventory));
+            return Unauthorized(new { error = new { code = "UNAUTHORIZED", message = "Missing authentication information" } });
+        }
+
+        var tenantId = tenantIdValue.ToString()!;
 
         if (!ModelState.IsValid)
         {

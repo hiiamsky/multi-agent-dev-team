@@ -26,16 +26,19 @@ public sealed class MenuController : ControllerBase
     /// </summary>
     [LiffAuth]
     [HttpPost("publish")]
-    public async Task<IActionResult> PublishMenu(
-        [FromHeader(Name = "X-Tenant-Id")] string? tenantId,
-        [FromHeader(Name = "X-User-Id")] string? userId,
-        CancellationToken ct)
+    public async Task<IActionResult> PublishMenu(CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
-            return BadRequest(new { error = new { code = "MISSING_TENANT", message = "Missing tenant ID" } });
+        if (!HttpContext.Items.TryGetValue("TenantId", out var tenantIdValue) ||
+            !HttpContext.Items.TryGetValue("LineUserId", out var userIdValue) ||
+            string.IsNullOrWhiteSpace(tenantIdValue?.ToString()) ||
+            string.IsNullOrWhiteSpace(userIdValue?.ToString()))
+        {
+            _logger.LogWarning("Missing authentication context in {Action}", nameof(PublishMenu));
+            return Unauthorized(new { error = new { code = "UNAUTHORIZED", message = "Missing authentication information" } });
+        }
 
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest(new { error = new { code = "MISSING_USER", message = "Missing user ID" } });
+        var tenantId = tenantIdValue.ToString()!;
+        var userId = userIdValue.ToString()!;
 
         try
         {
@@ -74,12 +77,16 @@ public sealed class MenuController : ControllerBase
     /// </summary>
     [LiffAuth]
     [HttpDelete("publish")]
-    public async Task<IActionResult> UnpublishMenu(
-        [FromHeader(Name = "X-Tenant-Id")] string? tenantId,
-        CancellationToken ct)
+    public async Task<IActionResult> UnpublishMenu(CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
-            return BadRequest(new { error = new { code = "MISSING_TENANT", message = "Missing tenant ID" } });
+        if (!HttpContext.Items.TryGetValue("TenantId", out var tenantIdValue) ||
+            string.IsNullOrWhiteSpace(tenantIdValue?.ToString()))
+        {
+            _logger.LogWarning("Missing authentication context in {Action}", nameof(UnpublishMenu));
+            return Unauthorized(new { error = new { code = "UNAUTHORIZED", message = "Missing authentication information" } });
+        }
+
+        var tenantId = tenantIdValue.ToString()!;
 
         try
         {
@@ -98,12 +105,16 @@ public sealed class MenuController : ControllerBase
     /// </summary>
     [LiffAuth]
     [HttpGet("today")]
-    public async Task<IActionResult> GetTodayMenu(
-        [FromQuery(Name = "tenant_id")] string? tenantId,
-        CancellationToken ct)
+    public async Task<IActionResult> GetTodayMenu(CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
-            return BadRequest(new { error = new { code = "MISSING_TENANT", message = "Missing tenant_id parameter" } });
+        if (!HttpContext.Items.TryGetValue("TenantId", out var tenantIdValue) ||
+            string.IsNullOrWhiteSpace(tenantIdValue?.ToString()))
+        {
+            _logger.LogWarning("Missing authentication context in {Action}", nameof(GetTodayMenu));
+            return Unauthorized(new { error = new { code = "UNAUTHORIZED", message = "Missing authentication information" } });
+        }
+
+        var tenantId = tenantIdValue.ToString()!;
 
         var query = new GetTodayMenuQuery(tenantId);
         var menu = await _mediator.Send(query, ct);
