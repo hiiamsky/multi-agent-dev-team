@@ -74,12 +74,28 @@ const itemInfo = ref({
 
 // QueryString 參數
 const itemId = computed(() => {
-  const value = route.query.item_id
+  const value = route.query.itemId || route.query.item_id // 支援新舊格式
   return typeof value === 'string' ? value : ''
 })
 const field = computed(() => {
   const value = route.query.field
   return typeof value === 'string' ? value : ''
+})
+
+// 新增：從 URL 讀取品項資料
+const itemName = computed(() => {
+  const value = route.query.itemName
+  return typeof value === 'string' ? value : '未知品項'
+})
+const buyPrice = computed(() => {
+  const value = route.query.buyPrice
+  const price = parseInt(typeof value === 'string' ? value : '0', 10)
+  return isNaN(price) ? 0 : price
+})
+const sellPrice = computed(() => {
+  const value = route.query.sellPrice
+  const price = parseInt(typeof value === 'string' ? value : '0', 10)
+  return isNaN(price) ? 0 : price
 })
 
 // 顯示相關計算
@@ -122,12 +138,18 @@ function validateQueryParams(): void {
 // 載入品項資訊
 async function loadItemInfo(): Promise<void> {
   try {
-    // 根據規格，我們需要先 GET item 資訊來顯示當前價格和名稱
-    // 但這裡沒有對應的 GET API，所以我們先用預設值
-    // 實際應該要有 GET /api/draft/item/{id} API
+    // 檢查是否缺少必要參數
+    if (buyPrice.value === 0) {
+      console.warn('URL 缺少 buyPrice 參數或值為 0')
+    }
+    if (sellPrice.value === 0) {
+      console.warn('URL 缺少 sellPrice 參數或值為 0')
+    }
+    
+    // 從 URL query string 讀取品項資料
     itemInfo.value = {
-      name: `品項 ${itemId.value.slice(0, 8)}...`,
-      currentPrice: field.value === 'buy_price' ? 25 : 35
+      name: itemName.value,
+      currentPrice: field.value === 'buy_price' ? buyPrice.value : sellPrice.value
     }
   } catch (error) {
     console.error('載入品項資訊失敗:', error)
