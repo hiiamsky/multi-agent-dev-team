@@ -157,7 +157,10 @@ public sealed class FlexMessageBuilderTests
         var json = Serialize(_builder.BuildDraftBubble(session, "https://liff.line.me/1234"));
 
         json.Should().Contain("✏️ 修正");
-        json.Should().Contain("item_id=a1b2c3d4e5f67890a1b2c3d4e5f67890");
+        json.Should().Contain("itemId=a1b2c3d4e5f67890a1b2c3d4e5f67890");
+        json.Should().Contain("itemName=%E5%88%9D%E7%A7%8B%E9%AB%98%E9%BA%97%E8%8F%9C");
+        json.Should().Contain("buyPrice=50");
+        json.Should().Contain("sellPrice=40");
         json.Should().Contain("uri");
     }
 

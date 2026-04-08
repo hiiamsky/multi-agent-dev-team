@@ -114,7 +114,26 @@ public sealed class ValidationReplyService : IValidationReplyService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "LINE Reply 失敗，無法回覆使用者");
+            _logger.LogWarning(ex, "LINE Reply 主要流程失敗，嘗試 fallback");
+            
+            // 嘗試 fallback 處理
+            try
+            {
+                var fallbackMessage = validatedItems is not null 
+                    ? GenerateValidationReply(validatedItems)
+                    : fallbackText ?? "系統忙碌中，請稍後重試";
+                    
+                // TODO: 在此處實作 LINE Push Message API 作為 fallback
+                // await _linePushService.PushMessageAsync(lineUserId, fallbackMessage, ct);
+                
+                _logger.LogWarning("LINE Reply 失敗但草稿已建立，用戶可能未收到回覆。LineUserId: {LineUserId}, TenantId: {TenantId}", 
+                    lineUserId ?? "unknown", tenantId ?? "unknown");
+            }
+            catch (Exception fallbackEx)
+            {
+                _logger.LogWarning(fallbackEx, "LINE Reply fallback 也失敗，用戶未收到任何回覆。LineUserId: {LineUserId}, TenantId: {TenantId}", 
+                    lineUserId ?? "unknown", tenantId ?? "unknown");
+            }
         }
     }
 

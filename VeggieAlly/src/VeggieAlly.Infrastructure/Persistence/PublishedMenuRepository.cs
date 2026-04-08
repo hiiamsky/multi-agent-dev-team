@@ -83,7 +83,7 @@ public sealed class PublishedMenuRepository : IPublishedMenuRepository
 
             await connection.ExecuteAsync(menuSql, menu, transaction);
 
-            // 插入菜單品項
+            // 批次插入菜單品項
             var itemSql = """
                 INSERT INTO published_menu_items (
                     id, menu_id, tenant_id, name, is_new, buy_price, sell_price, 
@@ -95,23 +95,22 @@ public sealed class PublishedMenuRepository : IPublishedMenuRepository
                 )
                 """;
 
-            foreach (var item in menu.Items)
+            var itemParams = menu.Items.Select(item => new
             {
-                await connection.ExecuteAsync(itemSql, new
-                {
-                    Id = item.Id,
-                    MenuId = item.MenuId,
-                    TenantId = menu.TenantId, // 為安全考量，使用菜單的 TenantId
-                    Name = item.Name,
-                    IsNew = item.IsNew,
-                    BuyPrice = item.BuyPrice,
-                    SellPrice = item.SellPrice,
-                    OriginalQty = item.OriginalQty,
-                    RemainingQty = item.RemainingQty,
-                    Unit = item.Unit,
-                    HistoricalAvgPrice = item.HistoricalAvgPrice
-                }, transaction);
-            }
+                Id = item.Id,
+                MenuId = item.MenuId,
+                TenantId = menu.TenantId, // 為安全考量，使用菜單的 TenantId
+                Name = item.Name,
+                IsNew = item.IsNew,
+                BuyPrice = item.BuyPrice,
+                SellPrice = item.SellPrice,
+                OriginalQty = item.OriginalQty,
+                RemainingQty = item.RemainingQty,
+                Unit = item.Unit,
+                HistoricalAvgPrice = item.HistoricalAvgPrice
+            }).ToArray();
+
+            await connection.ExecuteAsync(itemSql, itemParams, transaction);
 
             await transaction.CommitAsync(ct);
         }

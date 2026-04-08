@@ -60,7 +60,10 @@ public static class DependencyInjection
         }
         else
         {
-            services.AddSingleton<IDraftSessionStore, InMemoryDraftSessionStore>();
+            var inMemoryStore = new InMemoryDraftSessionStore();
+            services.AddSingleton<IDraftSessionStore>(inMemoryStore);
+            services.AddSingleton(inMemoryStore); // 為 CleanupService 提供具體型別
+            services.AddHostedService<InMemoryDraftSessionCleanupService>();
         }
 
         // ── Draft Menu Service ──

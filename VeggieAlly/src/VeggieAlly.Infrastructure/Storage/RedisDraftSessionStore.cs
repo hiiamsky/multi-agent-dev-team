@@ -28,7 +28,8 @@ public sealed class RedisDraftSessionStore : IDraftSessionStore
         
         try
         {
-            var json = await _database.StringGetAsync(key);
+            var jsonTask = _database.StringGetAsync(key);
+            var json = await jsonTask.WaitAsync(ct);
             if (!json.HasValue)
                 return null;
 
@@ -39,7 +40,8 @@ public sealed class RedisDraftSessionStore : IDraftSessionStore
         {
             _logger.LogWarning(ex, "Redis 草稿反序列化失敗，Key: {Key}", key);
             // 移除損壞的資料
-            await _database.KeyDeleteAsync(key);
+            var deleteTask = _database.KeyDeleteAsync(key);
+            await deleteTask.WaitAsync(ct);
             return null;
         }
         catch (Exception ex)
@@ -56,7 +58,8 @@ public sealed class RedisDraftSessionStore : IDraftSessionStore
         try
         {
             var json = JsonSerializer.Serialize(session, JsonOptions);
-            await _database.StringSetAsync(key, json, TimeSpan.FromHours(24));
+            var setTask = _database.StringSetAsync(key, json, TimeSpan.FromHours(24));
+            await setTask.WaitAsync(ct);
         }
         catch (Exception ex)
         {
@@ -71,7 +74,8 @@ public sealed class RedisDraftSessionStore : IDraftSessionStore
         
         try
         {
-            await _database.KeyDeleteAsync(key);
+            var deleteTask = _database.KeyDeleteAsync(key);
+            await deleteTask.WaitAsync(ct);
         }
         catch (Exception ex)
         {

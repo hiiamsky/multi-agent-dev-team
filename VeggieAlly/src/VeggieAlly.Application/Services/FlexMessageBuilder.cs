@@ -359,7 +359,7 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
                 {
                     ["type"] = "uri",
                     ["label"] = "✏️ 修正",
-                    ["uri"] = $"{liffBaseUrl}?item_id={item.Id}&field=buy_price"
+                    ["uri"] = $"{liffBaseUrl}/numpad?itemId={Uri.EscapeDataString(item.Id.ToString())}&itemName={Uri.EscapeDataString(item.Name)}&buyPrice={item.BuyPrice}&sellPrice={item.SellPrice}"
                 }
             });
         }

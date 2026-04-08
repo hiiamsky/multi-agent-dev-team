@@ -96,9 +96,19 @@ public sealed class ProcessAudioMessageHandler : IRequestHandler<ProcessAudioMes
                 llmResponse, replyToken, tenantId, lineUserId, cancellationToken);
             _logger.LogInformation("成功處理語音訊息並回覆");
         }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("請求已取消");
+            throw; // 重新拋出讓 middleware 處理
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Gemini HTTP 呼叫失敗");
+            await SafeReplyAsync(replyToken, "系統忙碌中，請稍後重試", cancellationToken);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Gemini API 呼叫失敗");
+            _logger.LogError(ex, "處理訊息時發生非預期錯誤");
             await SafeReplyAsync(replyToken, "系統忙碌中，請稍後重試", cancellationToken);
         }
     }
