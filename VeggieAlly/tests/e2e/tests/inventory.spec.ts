@@ -5,7 +5,7 @@
  *
  * 測試環境需求：
  *   - docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
- *   - API 在 http://localhost:5000 提供服務（ASPNETCORE_ENVIRONMENT=Testing）
+ *   - API 在 http://localhost:5010 提供服務（ASPNETCORE_ENVIRONMENT=Testing）
  *   - PostgreSQL 已跑 migration（db-init 容器完成）
  *
  * 測試案例：
