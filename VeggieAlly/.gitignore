@@ -276,4 +276,7 @@ FodyWeavers.xsd
 
 # LIFF frontend build output (built by CI/CD)
 src/VeggieAlly.WebAPI/wwwroot/liff/
+
+# C# Dev Kit language service cache  
+*.lscache
 **/appsettings.Development.json
