@@ -76,7 +76,7 @@ public sealed class ProcessTextMessageHandler : IRequestHandler<ProcessTextMessa
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Gemini HTTP 呼叫失敗");
+            _logger.LogError(ex, "AI HTTP 呼叫失敗");
             try
             {
                 await _lineReplyService.ReplyTextAsync(replyToken, "系統忙碌中，請稍後重試", cancellationToken);

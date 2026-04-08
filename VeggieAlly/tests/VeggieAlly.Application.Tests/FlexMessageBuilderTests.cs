@@ -161,6 +161,8 @@ public sealed class FlexMessageBuilderTests
         json.Should().Contain("itemName=%E5%88%9D%E7%A7%8B%E9%AB%98%E9%BA%97%E8%8F%9C");
         json.Should().Contain("buyPrice=50");
         json.Should().Contain("sellPrice=40");
+        json.Should().Contain("field=buy_price");
+        json.Should().Contain("field=sell_price");
         json.Should().Contain("uri");
     }
 

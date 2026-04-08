@@ -368,7 +368,7 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
                         {
                             ["type"] = "uri",
                             ["label"] = "✏️ 修正進價",
-                            ["uri"] = $"{liffBaseUrl}/numpad?itemId={Uri.EscapeDataString(item.Id.ToString())}&itemName={Uri.EscapeDataString(item.Name)}&buyPrice={item.BuyPrice}&sellPrice={item.SellPrice}&field=buy_price"
+                            ["uri"] = $"{liffBaseUrl}/numpad?itemId={Uri.EscapeDataString(item.Id.ToString())}&itemName={Uri.EscapeDataString(item.Name)}&buyPrice={Uri.EscapeDataString(item.BuyPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&sellPrice={Uri.EscapeDataString(item.SellPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&field=buy_price"
                         }
                     },
                     new Dictionary<string, object>
@@ -380,7 +380,7 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
                         {
                             ["type"] = "uri",
                             ["label"] = "✏️ 修正售價",
-                            ["uri"] = $"{liffBaseUrl}/numpad?itemId={Uri.EscapeDataString(item.Id.ToString())}&itemName={Uri.EscapeDataString(item.Name)}&buyPrice={item.BuyPrice}&sellPrice={item.SellPrice}&field=sell_price"
+                            ["uri"] = $"{liffBaseUrl}/numpad?itemId={Uri.EscapeDataString(item.Id.ToString())}&itemName={Uri.EscapeDataString(item.Name)}&buyPrice={Uri.EscapeDataString(item.BuyPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&sellPrice={Uri.EscapeDataString(item.SellPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))}&field=sell_price"
                         }
                     }
                 }

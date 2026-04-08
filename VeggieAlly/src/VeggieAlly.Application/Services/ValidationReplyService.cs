@@ -112,6 +112,10 @@ public sealed class ValidationReplyService : IValidationReplyService
                 await _lineReplyService.ReplyTextAsync(replyToken, fallbackText!, ct);
             }
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "LINE Reply 主要流程失敗，嘗試 fallback");
@@ -119,10 +123,6 @@ public sealed class ValidationReplyService : IValidationReplyService
             // 嘗試 fallback 處理
             try
             {
-                var fallbackMessage = validatedItems is not null 
-                    ? GenerateValidationReply(validatedItems)
-                    : fallbackText ?? "系統忙碌中，請稍後重試";
-                    
                 // TODO: 在此處實作 LINE Push Message API 作為 fallback
                 // await _linePushService.PushMessageAsync(lineUserId, fallbackMessage, ct);
                 

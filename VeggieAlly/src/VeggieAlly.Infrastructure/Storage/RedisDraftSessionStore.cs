@@ -44,6 +44,10 @@ public sealed class RedisDraftSessionStore : IDraftSessionStore
             await deleteTask.WaitAsync(ct);
             return null;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Redis 讀取草稿失敗，Key: {Key}", key);
