@@ -14,6 +14,14 @@ export interface LiffService {
 
 let liffInstance: LiffService | null = null
 
+/**
+ * 重置 LIFF instance (僅供測試使用)
+ * 解決 Vitest 跨測試污染問題
+ */
+export function resetLiffInstance(): void {
+  liffInstance = null
+}
+
 export function useLiff(): LiffService {
   if (liffInstance) {
     return liffInstance
