@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-
-// We need to reset the singleton before each test
-let useLiffModule: typeof import('@/composables/useLiff')
+import { useLiff, resetLiffInstance } from '@/composables/useLiff'
 
 // Mock @line/liff
 vi.mock('@line/liff', () => ({
@@ -16,10 +14,10 @@ vi.mock('@line/liff', () => ({
 }))
 
 describe('useLiff', () => {
-  beforeEach(async () => {
-    vi.resetModules()
-    // Re-import to reset singleton
-    useLiffModule = await import('@/composables/useLiff')
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Reset singleton instance for each test
+    resetLiffInstance()
   })
 
   it('init_success_sets_ready — isReady becomes true after successful init', async () => {
@@ -35,7 +33,7 @@ describe('useLiff', () => {
       statusMessage: undefined as any
     })
 
-    const service = useLiffModule.useLiff()
+    const service = useLiff()
     await service.init('test-liff-id')
 
     expect(service.isReady.value).toBe(true)
@@ -48,7 +46,7 @@ describe('useLiff', () => {
     const liff = await import('@line/liff')
     vi.mocked(liff.default.init).mockRejectedValue(new Error('LIFF init failed'))
 
-    const service = useLiffModule.useLiff()
+    const service = useLiff()
 
     await expect(service.init('bad-id')).rejects.toThrow('LIFF init failed')
     expect(service.isReady.value).toBe(false)
@@ -68,14 +66,14 @@ describe('useLiff', () => {
       statusMessage: undefined as any
     })
 
-    const service = useLiffModule.useLiff()
+    const service = useLiff()
     await service.init('test-liff-id')
 
     expect(service.getToken()).toBe('the-token')
   })
 
   it('getToken_throws_if_not_ready — throws when called before init', () => {
-    const service = useLiffModule.useLiff()
+    const service = useLiff()
 
     expect(() => service.getToken()).toThrow('LIFF 尚未就緒')
   })
