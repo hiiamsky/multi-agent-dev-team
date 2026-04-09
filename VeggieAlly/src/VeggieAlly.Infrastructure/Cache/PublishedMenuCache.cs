@@ -14,6 +14,20 @@ public sealed class PublishedMenuCache : IPublishedMenuCache
     private readonly IDatabase _database;
     private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// 台灣時區，跨平台相容 (Linux: Asia/Taipei, Windows: Taipei Standard Time)
+    /// </summary>
+    private static readonly TimeZoneInfo TaipeiTimeZone = 
+        TryFindTimeZone("Asia/Taipei") ?? 
+        TryFindTimeZone("Taipei Standard Time") ?? 
+        TimeZoneInfo.Utc;
+
+    private static TimeZoneInfo? TryFindTimeZone(string id)
+    {
+        try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+        catch { return null; }
+    }
+
     public PublishedMenuCache(IConnectionMultiplexer redis)
     {
         _redis = redis;
@@ -69,9 +83,8 @@ public sealed class PublishedMenuCache : IPublishedMenuCache
     /// </summary>
     private static TimeSpan CalculateTtlUntilEndOfDay()
     {
-        // 获取台灣時間的現在時間
-        var taiwanTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Taipei");
-        var nowInTaiwan = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, taiwanTimeZone);
+        // 获取台灣時間的現在時間 (跨平台相容)
+        var nowInTaiwan = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TaipeiTimeZone);
         
         // 計算當日 23:59:59 的時間
         var endOfDay = nowInTaiwan.Date.AddDays(1).AddSeconds(-1);

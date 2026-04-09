@@ -161,7 +161,7 @@ function handleQtyChange(itemId: string, newQty: number): void {
   }
 }
 
-// 送出訂單 (序列呼叫)
+// 送出訂單 (all-or-nothing 模式)
 async function handleSubmitOrder(): Promise<void> {
   if (!canOrder.value || submitting.value || !menuData.value) return
   
@@ -176,9 +176,10 @@ async function handleSubmitOrder(): Promise<void> {
       return
     }
     
-    // 序列呼叫庫存 API (非並行)
+    // All-or-nothing: 序列呼叫但記錄成功品項，失敗時提供明確反饋
     const results: DeductInventoryResponse[] = []
-    let hasError = false
+    const successItems: string[] = []
+    let failureReason: string = ''
     
     for (const item of itemsToOrder) {
       try {
@@ -194,24 +195,22 @@ async function handleSubmitOrder(): Promise<void> {
         )
         
         results.push(response)
+        successItems.push(item.name)
         
       } catch (error: any) {
         console.error(`品項 ${item.name} 下單失敗:`, error)
         
         if (error?.error?.code === 'CONFLICT' || error?.error?.message?.includes('409')) {
-          showToast(`❌ ${item.name} 庫存不足`, 'error')
-          hasError = true
-          break // 中止剩餘品項的下單
+          failureReason = `${item.name} 庫存不足`
         } else {
-          const message = error?.error?.message || '下單失敗'
-          showToast(`❌ ${item.name} ${message}`, 'error')
-          hasError = true
-          break
+          const message = error?.error?.message || '系統錯誤'
+          failureReason = `${item.name} ${message}`
         }
+        break // 中止剩餘品項的下單
       }
     }
     
-    if (!hasError && results.length === itemsToOrder.length) {
+    if (results.length === itemsToOrder.length) {
       // 全部成功
       showToast(`✅ 訂單提交成功！共 ${totalItems.value} 項`, 'success')
       
@@ -219,11 +218,21 @@ async function handleSubmitOrder(): Promise<void> {
       setTimeout(() => {
         loadMenu()
       }, 1000)
-    } else if (hasError) {
-      // 有錯誤，重新載入菜單
+    } else {
+      // 部分成功 - 顯示明確狀態並要求重新整理
+      if (successItems.length > 0) {
+        showToast(
+          `⚠️ 部分品項訂購失敗：${failureReason}\n已成功：${successItems.join(', ')}\n請重新整理後重試剩餘品項`, 
+          'warning'
+        )
+      } else {
+        showToast(`❌ ${failureReason}`, 'error')
+      }
+      
+      // 自動重新載入最新庫存狀態，讓用戶看到真實狀況
       setTimeout(() => {
         loadMenu()
-      }, 1500)
+      }, 2000)
     }
     
   } catch (error: any) {
