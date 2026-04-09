@@ -8,6 +8,7 @@ using VeggieAlly.Application.Menu.DeductInventory;
 using VeggieAlly.Domain.Exceptions;
 using VeggieAlly.Domain.Models.Menu;
 using VeggieAlly.WebAPI.Controllers;
+using VeggieAlly.WebAPI.Contracts.Inventory;
 
 namespace VeggieAlly.Application.Tests;
 
