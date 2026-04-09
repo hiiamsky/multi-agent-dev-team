@@ -49,8 +49,14 @@ argument-hint: "描述要驗證的交付物、規格書或程式碼變更"
    - 併發場景下的 Transaction 完整性與 Deadlock 風險
    - 錯誤處理路徑是否涵蓋規格定義的所有狀態碼
 
-4. **業務痛點回溯驗證**：
-   - 最終成品是否真正解決了 Orchestrator 定義的核心問題
+4. **業務驗收對齊（BDD Scenario Coverage）**：
+   - 讀取 SA/SD 藍圖中的 `## BDD User Stories` 章節，取得所有 Scenarios 清單
+   - 逐條驗證每個 Scenario 的 Given/When/Then：
+     - `Given`：對應的前置資料或狀態是否正確建立？
+     - `When`：對應的 API endpoint 是否存在且行為正確？
+     - `Then`：API response 欄位是否包含 Scenario 中列出的所有 UI 欄位？HTTP status code 是否符合？
+   - **覆蓋率要求**：BDD Scenarios 100% 覆蓋，任何未覆蓋的 Scenario = 缺陷，退回對應 agent
+   - **合約偏差檢查**：若實作的 response 結構與 BDD 推導的 Frozen API Contract 不一致，標記為缺陷並退回 backend-pg
 
 ### 階段二．五：安全驗證 (Security Verification)
 

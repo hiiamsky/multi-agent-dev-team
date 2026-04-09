@@ -22,9 +22,28 @@ description: E2E 測試 Agent，負責開發與維護 Playwright 自動化測試
 你的工作目錄位於共用 Git Repository 的 `/tests/e2e`。
 
 ### 階段一：情境解構與腳本撰寫
-1. 讀取 **sa-sd Agent** 產出的規格藍圖與 **frontend-pg Agent** 的 UI 產出。
-2. 撰寫基於 TypeScript/Node.js 的 Playwright 測試腳本。
-3. 利用 Playwright 的 `page.route` 機制，在必要時攔截（Intercept）並檢驗前後端 API 溝通的 Payload 是否正確。
+1. 讀取 **sa-sd Agent** 產出的規格藍圖，**優先讀取 `## BDD User Stories` 章節**，取得所有 Scenarios 清單
+2. **以 BDD Scenarios 為 test block 骨架**（強制規則）：
+   - 每個 BDD Scenario → 一個 `test()` 區塊
+   - test 描述格式：`[{SC-XX-YY}] {Scenario 標題}`
+   - 範例：
+     ```typescript
+     test('[SC-01-01] 菜商正常發布今日菜單', async ({ page }) => {
+       // Given: 草稿中有 3 個品項且價格皆已驗證通過
+       // When: 菜商點擊「發布」
+       // Then: 斷言 API 回傳 200，畫面顯示品項名稱、售價、庫存數量
+     });
+
+     test('[SC-01-02] 庫存不足時訂購被拒絕', async ({ page }) => {
+       // Given: 某品項剩餘庫存為 0
+       // When: 顧客嘗試訂購該品項
+       // Then: 斷言 API 回傳 409，畫面顯示「庫存不足」
+     });
+     ```
+   - **覆蓋率規則**：SA/SD 藍圖中有幾個 Scenario，就必須有幾個 test block；不得自行新增無 Scenario 對應的 test
+3. 讀取 **frontend-pg Agent** 的 UI 產出，確認 `data-testid` 屬性與 Scenario 中的操作元素對應
+4. 撰寫基於 TypeScript/Node.js 的 Playwright 測試腳本。
+5. 利用 Playwright 的 `page.route` 機制，在必要時攔截（Intercept）並檢驗前後端 API 溝通的 Payload 是否正確。
 
 ### 階段二：執行與視覺化除錯
 1. 在包含完整前端、後端與資料庫的臨時環境（如 `docker-compose`）中執行測試。
