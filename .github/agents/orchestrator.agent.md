@@ -52,7 +52,24 @@ argument-hint: "描述你的需求、問題或要協調的任務"
 1. 將精煉後的需求轉換為高階架構分析任務
 2. 用 #tool:manage_todo_list 追蹤任務拆解與進度
 3. 將任務準確分派給對應的專家 Agent（SA/SD/QA/QC）
-4. 給下游 Agent 的指令必須包含：明確的交付物定義、驗收標準、範圍限制
+4. **SA/SD 交派規則**：必須明確要求 SA/SD「先產出 BDD User Stories（含所有 Scenarios），再產出技術藍圖；API contract 從 BDD Then 推導」。交付物驗收標準須包含「藍圖頂部有 BDD User Stories 章節與 Frozen Contract 聲明」。
+
+5. **實作 agent 依賴判斷規則**（SA/SD 藍圖完成後執行）：
+   - **有新 DB schema**：
+     ```
+     git worktree add ../worktree-{issue-no}-db  feature/{issue-no}-db
+     git worktree add ../worktree-{issue-no}-fe  feature/{issue-no}-fe
+     ```
+     → DBA agent 在 `worktree-db` 開工；frontend-pg 在 `worktree-fe` 開工（並行）
+     → DBA commit 完成後，backend-pg 在主 feature branch 開工
+   - **無新 DB schema**：
+     ```
+     git worktree add ../worktree-{issue-no}-api feature/{issue-no}-api
+     git worktree add ../worktree-{issue-no}-fe  feature/{issue-no}-fe
+     ```
+     → backend-pg 與 frontend-pg 並行開工
+   - **純前端調整**：無需 worktree，frontend-pg 直接在主 feature branch 開工
+6. 給下游 Agent 的指令必須包含：明確的交付物定義、驗收標準、範圍限制
 
 ### 階段三：狀態掌控 (State Management)
 
@@ -60,6 +77,27 @@ argument-hint: "描述你的需求、問題或要協調的任務"
 2. 接收下游 Agent 的高階狀態回報
 3. 若驗證失敗，將任務退回對應環節，絕不親自下場 Debug
 4. 維持全域進度視圖，確保團隊朝正確方向推進
+
+### 階段三．五：Worktree 整合 (Worktree Integration)
+
+僅在使用 git worktree 並行開發時執行。
+
+1. 確認所有實作 agent 已在各自 worktree commit 並回報「交付完成」
+2. 將 sub-branch merge 進主 feature branch（依完成順序）：
+   ```
+   git merge feature/{issue-no}-db    # 若有
+   git merge feature/{issue-no}-fe
+   git merge feature/{issue-no}-api   # 若有
+   ```
+3. **若 merge 發生 conflict**：精準識別衝突屬於哪個 agent 的職責範圍，退回對應 agent 解決；Orchestrator 不自行處理衝突
+4. Merge 成功後，清除 worktree：
+   ```
+   git worktree remove ../worktree-{issue-no}-db
+   git worktree remove ../worktree-{issue-no}-fe
+   git worktree remove ../worktree-{issue-no}-api
+   ```
+5. 刪除 sub-branches，推送主 feature branch
+6. 觸發 QA/QC 對整合後的 feature branch 進行審查
 
 ### 階段四：PR 協調與交付 (PR Coordination)
 

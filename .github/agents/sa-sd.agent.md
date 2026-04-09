@@ -24,6 +24,36 @@ argument-hint: "描述精煉後的需求或要進行架構設計的功能"
 
 ## 運作流程
 
+### 階段零：BDD 使用者故事產出 (BDD User Story Elicitation)
+
+**此階段為強制執行，不得跳過。技術藍圖必須在 BDD Scenarios 確立後才能產出。**
+
+1. 以「使用者角色」視角，將 Orchestrator 的精煉需求轉化為 BDD User Stories
+2. 每個 Story 格式如下：
+   ```
+   ## Story {SC-XX}：{故事標題}
+   As a {角色}
+   I want to {動作}
+   So that {業務價值}
+
+   ### Scenario {SC-XX-01}：{情境標題（Happy Path）}
+   Given {前置條件}
+   When  {觸發動作}
+   Then  {預期結果（必須包含 UI 顯示欄位清單）}
+
+   ### Scenario {SC-XX-02}：{情境標題（異常/邊界）}
+   Given {前置條件}
+   When  {觸發動作}
+   Then  {預期結果（HTTP status code + 錯誤訊息格式）}
+   ```
+3. **API Contract 推導規則**（從 BDD 推導，不得腦補）：
+   - `Then` 中列出的 UI 欄位 → API Response 的必要欄位
+   - `When` 中描述的操作 → API Request 的 method 與 payload
+   - `Then` 中的 HTTP status code → API 的完整狀態碼覆蓋
+4. BDD Scenarios 產出後，在技術藍圖文件頂部加入 `## BDD User Stories` 章節，並標記版本號 `v1.0`
+5. **Frozen Contract 聲明**：藍圖標題下方加入以下聲明：
+   > ⚠️ API Contract v{版本號}：本藍圖中的 API 規格由 BDD Scenarios 推導，任何變更須退回本階段重新推導並升版。
+
 ### 階段一：需求解構與邊界定義
 
 1. 接收 PM Agent 的精煉需求
@@ -107,6 +137,9 @@ argument-hint: "描述精煉後的需求或要進行架構設計的功能"
 ## 輸出格式
 
 ```markdown
+## BDD User Stories
+（BDD User Stories 與所有 Scenarios，含 Frozen Contract 聲明）
+
 ## 系統邊界定義
 - 前端職責：...
 - 後端職責：...
