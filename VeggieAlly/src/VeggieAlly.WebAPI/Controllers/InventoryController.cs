@@ -1,9 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VeggieAlly.Application.Menu.DeductInventory;
 using VeggieAlly.Domain.Exceptions;
+using VeggieAlly.WebAPI.Contracts.Inventory;
 using VeggieAlly.WebAPI.Filters;
 
 namespace VeggieAlly.WebAPI.Controllers;
@@ -77,18 +76,4 @@ public sealed class InventoryController : ControllerBase
             return BadRequest(new { error = new { code = "INVALID_ARGUMENT", message = ex.Message } });
         }
     }
-}
-
-/// <summary>
-/// 庫存扣除請求 DTO
-/// </summary>
-public sealed record DeductInventoryRequest
-{
-    [Required(ErrorMessage = "Item ID is required")]
-    [JsonPropertyName("item_id")]
-    public required string ItemId { get; init; }
-
-    [Range(1, int.MaxValue, ErrorMessage = "Amount must be greater than 0")]
-    [JsonPropertyName("amount")]
-    public required int Amount { get; init; }
 }

@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace VeggieAlly.Domain.ValueObjects;
 
 /// <summary>
 /// 驗證狀態列舉
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ValidationStatus
 {
     Ok,         // 準備發布區

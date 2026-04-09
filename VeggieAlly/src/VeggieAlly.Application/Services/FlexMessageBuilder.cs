@@ -1,4 +1,5 @@
 using VeggieAlly.Application.Common.Interfaces;
+using VeggieAlly.Application.Services.FlexMessage;
 using VeggieAlly.Domain.ValueObjects;
 using VeggieAlly.Domain.Models.Draft;
 using VeggieAlly.Domain.Models.Menu;
@@ -7,6 +8,86 @@ namespace VeggieAlly.Application.Services;
 
 public sealed class FlexMessageBuilder : IFlexMessageBuilder
 {
+    /// <summary>
+    /// 使用強型別建構 Flex Message Bubble（推薦）
+    /// </summary>
+    public FlexBubble BuildStrongTypedBubble(IReadOnlyList<ValidatedVegetableItem> items)
+    {
+        if (items is null || items.Count == 0)
+            throw new ArgumentException("品項清單不得為空", nameof(items));
+
+        var okItems = items.Where(i => i.Validation.Status == ValidationStatus.Ok).ToList();
+        var anomalyItems = items.Where(i => i.Validation.Status != ValidationStatus.Ok).ToList();
+
+        var bodyContents = new List<IFlexComponent>();
+
+        // 🟢 準備發布區
+        if (okItems.Count > 0)
+        {
+            bodyContents.Add(CreateStrongTypedSectionHeader("🟢 準備發布", "#1DB446"));
+            bodyContents.Add(new FlexSeparator());
+            foreach (var item in okItems)
+            {
+                bodyContents.Add(CreateStrongTypedItemRow(item.Name, item.BuyPrice, item.SellPrice, item.Quantity, item.Unit));
+            }
+        }
+
+        // 🔴 異常待處理區
+        if (anomalyItems.Count > 0)
+        {
+            if (okItems.Count > 0)
+                bodyContents.Add(new FlexSeparator { Margin = "lg" });
+
+            bodyContents.Add(CreateStrongTypedSectionHeader("🔴 異常待處理", "#FF0000"));
+            bodyContents.Add(new FlexSeparator());
+            foreach (var item in anomalyItems)
+            {
+                bodyContents.Add(CreateStrongTypedAnomalyItemBox(item.Name, item.BuyPrice, item.SellPrice, item.Quantity, item.Unit, item.Validation.Message));
+            }
+        }
+
+        return new FlexBubble
+        {
+            Header = new FlexBox
+            {
+                Layout = "vertical",
+                Contents =
+                [
+                    new FlexText
+                    {
+                        Text = "📋 今日報價確認",
+                        Weight = "bold",
+                        Size = "lg",
+                        Color = "#333333"
+                    }
+                ]
+            },
+            Body = new FlexBox
+            {
+                Layout = "vertical",
+                Spacing = "sm",
+                Contents = bodyContents
+            },
+            Footer = new FlexBox
+            {
+                Layout = "vertical",
+                Contents =
+                [
+                    new FlexText
+                    {
+                        Text = "💡 如需修正，請重新傳送語音或文字",
+                        Size = "xs",
+                        Color = "#AAAAAA",
+                        Align = "center"
+                    }
+                ]
+            }
+        };
+    }
+
+    /// <summary>
+    /// 建構 Flex Message Bubble（維持向後相容）
+    /// </summary>
     public object BuildBubble(IReadOnlyList<ValidatedVegetableItem> items)
     {
         if (items is null || items.Count == 0)
@@ -542,6 +623,120 @@ public sealed class FlexMessageBuilder : IFlexMessageBuilder
                     ["flex"] = 2
                 }
             }
+        };
+    }
+
+    /// <summary>
+    /// 創建強型別區塊標題
+    /// </summary>
+    private static FlexText CreateStrongTypedSectionHeader(string title, string color)
+    {
+        return new FlexText
+        {
+            Text = title,
+            Weight = "bold",
+            Size = "md",
+            Color = color
+        };
+    }
+
+    /// <summary>
+    /// 創建強型別品項行
+    /// </summary>
+    private static FlexBox CreateStrongTypedItemRow(string name, decimal buyPrice, decimal sellPrice, int quantity, string unit)
+    {
+        return new FlexBox
+        {
+            Layout = "horizontal",
+            Margin = "sm",
+            Contents =
+            [
+                new FlexText
+                {
+                    Text = name,
+                    Size = "sm",
+                    Color = "#333333",
+                    Flex = 3
+                },
+                new FlexText
+                {
+                    Text = $"進${buyPrice} 售${sellPrice}",
+                    Size = "xs",
+                    Color = "#666666",
+                    Align = "end",
+                    Flex = 2
+                },
+                new FlexText
+                {
+                    Text = $"{quantity}{unit}",
+                    Size = "xs",
+                    Color = "#666666",
+                    Align = "end",
+                    Flex = 1
+                }
+            ]
+        };
+    }
+
+    /// <summary>
+    /// 創建強型別異常品項框
+    /// </summary>
+    private static FlexBox CreateStrongTypedAnomalyItemBox(string name, decimal buyPrice, decimal sellPrice, int quantity, string unit, string? errorMessage)
+    {
+        var contents = new List<IFlexComponent>
+        {
+            new FlexBox
+            {
+                Layout = "horizontal",
+                Contents =
+                [
+                    new FlexText
+                    {
+                        Text = name,
+                        Size = "sm",
+                        Color = "#FF0000",
+                        Weight = "bold",
+                        Flex = 3
+                    },
+                    new FlexText
+                    {
+                        Text = $"進${buyPrice} 售${sellPrice}",
+                        Size = "xs",
+                        Color = "#666666",
+                        Align = "end",
+                        Flex = 2
+                    },
+                    new FlexText
+                    {
+                        Text = $"{quantity}{unit}",
+                        Size = "xs",
+                        Color = "#666666",
+                        Align = "end",
+                        Flex = 1
+                    }
+                ]
+            }
+        };
+
+        if (!string.IsNullOrEmpty(errorMessage))
+        {
+            contents.Add(new FlexText
+            {
+                Text = $"⚠️ {errorMessage}",
+                Size = "xxs",
+                Color = "#FF6600",
+                Margin = "xs",
+                Wrap = true
+            });
+        }
+
+        return new FlexBox
+        {
+            Layout = "vertical",
+            Margin = "sm",
+            PaddingAll = "xs",
+            BackgroundColor = "#FFF5F5",
+            Contents = contents
         };
     }
 }

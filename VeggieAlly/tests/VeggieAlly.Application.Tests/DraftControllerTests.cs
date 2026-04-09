@@ -3,14 +3,13 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using VeggieAlly.Application.Draft.CorrectItem;
 using VeggieAlly.Domain.Models.Draft;
 using VeggieAlly.Domain.ValueObjects;
-using VeggieAlly.Infrastructure.Line;
 using VeggieAlly.WebAPI.Controllers;
+using VeggieAlly.WebAPI.Contracts.Draft;
 
 namespace VeggieAlly.Application.Tests;
 
@@ -22,14 +21,7 @@ public sealed class DraftControllerTests
 
     public DraftControllerTests()
     {
-        var lineOptions = Options.Create(new LineOptions
-        {
-            ChannelSecret = "test-secret",
-            ChannelAccessToken = "test-token",
-            ChannelId = "test-channel-id",
-            TenantId = "default"
-        });
-        _controller = new DraftController(_mediator, lineOptions, _logger);
+        _controller = new DraftController(_mediator, _logger);
 
         // 模擬 HttpContext Items（LiffAuth filter 設定的）
         var httpContext = new DefaultHttpContext();

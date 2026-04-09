@@ -197,7 +197,18 @@ public sealed class ValidationReplyService : IValidationReplyService
         return reply.ToString();
     }
 
-    internal static string? StripMarkdownCodeFence(string? text)
+    /// <summary>
+    /// 移除 Markdown 程式碼圍籬 (internal for testing)
+    /// </summary>
+    internal string? StripMarkdownCodeFence(string? text)
+    {
+        return StripMarkdownCodeFenceInternal(text);
+    }
+
+    /// <summary>
+    /// 移除 Markdown 程式碼圍籬，供測試覆蓋
+    /// </summary>
+    public static string? StripMarkdownCodeFenceInternal(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return text;
