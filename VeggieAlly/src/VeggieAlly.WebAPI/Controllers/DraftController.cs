@@ -1,11 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using VeggieAlly.Application.Draft.CorrectItem;
-using VeggieAlly.Infrastructure.Line;
+using VeggieAlly.WebAPI.Contracts.Draft;
 using VeggieAlly.WebAPI.Filters;
 
 namespace VeggieAlly.WebAPI.Controllers;
@@ -18,13 +15,11 @@ namespace VeggieAlly.WebAPI.Controllers;
 public class DraftController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly LineOptions _lineOptions;
     private readonly ILogger<DraftController> _logger;
 
-    public DraftController(IMediator mediator, IOptions<LineOptions> lineOptions, ILogger<DraftController> logger)
+    public DraftController(IMediator mediator, ILogger<DraftController> logger)
     {
         _mediator = mediator;
-        _lineOptions = lineOptions.Value;
         _logger = logger;
     }
 
@@ -98,7 +93,7 @@ public class DraftController : ControllerBase
                 HistoricalAvgPrice = draftItem.HistoricalAvgPrice,
                 Validation = new ValidationResultDto
                 {
-                    Status = draftItem.Validation.Status.ToString().ToLowerInvariant(),
+                    Status = draftItem.Validation.Status,
                     Message = draftItem.Validation.Message
                 }
             };
@@ -132,63 +127,4 @@ public class DraftController : ControllerBase
         if (value is null) return true;
         return decimal.Round(value.Value, 2) == value.Value;
     }
-}
-
-/// <summary>
-/// 修正品項價格請求
-/// </summary>
-public class CorrectItemPriceRequest
-{
-    [JsonPropertyName("buy_price")]
-    [Range(0.01, 99999.99, ErrorMessage = "進價必須在 0.01 到 99999.99 之間")]
-    public decimal? BuyPrice { get; set; }
-
-    [JsonPropertyName("sell_price")]
-    [Range(0.01, 99999.99, ErrorMessage = "售價必須在 0.01 到 99999.99 之間")]
-    public decimal? SellPrice { get; set; }
-}
-
-/// <summary>
-/// 草稿品項回應 DTO
-/// </summary>
-public class DraftItemDto
-{
-    [JsonPropertyName("id")]
-    public required string Id { get; set; }
-
-    [JsonPropertyName("name")]
-    public required string Name { get; set; }
-
-    [JsonPropertyName("is_new")]
-    public bool IsNew { get; set; }
-
-    [JsonPropertyName("buy_price")]
-    public decimal BuyPrice { get; set; }
-
-    [JsonPropertyName("sell_price")]
-    public decimal SellPrice { get; set; }
-
-    [JsonPropertyName("quantity")]
-    public int Quantity { get; set; }
-
-    [JsonPropertyName("unit")]
-    public required string Unit { get; set; }
-
-    [JsonPropertyName("historical_avg_price")]
-    public decimal? HistoricalAvgPrice { get; set; }
-
-    [JsonPropertyName("validation")]
-    public required ValidationResultDto Validation { get; set; }
-}
-
-/// <summary>
-/// 驗證結果 DTO
-/// </summary>
-public class ValidationResultDto
-{
-    [JsonPropertyName("status")]
-    public required string Status { get; set; }
-
-    [JsonPropertyName("message")]
-    public string? Message { get; set; }
 }

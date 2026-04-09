@@ -2,17 +2,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
 using VeggieAlly.Infrastructure.Line;
+using VeggieAlly.WebAPI.Configuration;
 
 namespace VeggieAlly.WebAPI.Filters;
 
 public sealed class LineSignatureAuthFilter : IAsyncResourceFilter
 {
-    private readonly LineOptions _lineOptions;
+    private readonly LineSettings _lineSettings;
     private readonly ILogger<LineSignatureAuthFilter> _logger;
 
-    public LineSignatureAuthFilter(IOptions<LineOptions> lineOptions, ILogger<LineSignatureAuthFilter> logger)
+    public LineSignatureAuthFilter(IOptions<LineSettings> lineSettings, ILogger<LineSignatureAuthFilter> logger)
     {
-        _lineOptions = lineOptions.Value;
+        _lineSettings = lineSettings.Value;
         _logger = logger;
     }
 
@@ -47,8 +48,8 @@ public sealed class LineSignatureAuthFilter : IAsyncResourceFilter
         // 重設 Body 位置以供 model binding 讀取
         request.Body.Position = 0;
 
-        // 驗證簽章
-        var isValid = LineSignatureValidator.Validate(_lineOptions.ChannelSecret, requestBody, signature);
+        // 驗證簽章（使用安全注入的設定）
+        var isValid = LineSignatureValidator.Validate(_lineSettings.ChannelSecret, requestBody, signature);
         
         if (!isValid)
         {
