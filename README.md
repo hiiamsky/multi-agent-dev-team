@@ -1,4 +1,4 @@
-# mulAgent
+# multi-agent-dev-team
 
 > 以多智能體團隊驅動企業級軟體開發的實驗性框架
 
