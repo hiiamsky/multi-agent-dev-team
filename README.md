@@ -48,7 +48,7 @@
 ## Repo 結構
 
 ```
-mulAgent/
+multi-agent-dev-team/
 ├── VeggieAlly/          # 產品專案（含完整 src、tests、db、liff-app）
 ├── docs/
 │   ├── specs/           # SA/SD 規格藍圖
