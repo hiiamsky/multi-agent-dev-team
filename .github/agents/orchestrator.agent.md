@@ -47,6 +47,26 @@ argument-hint: "描述你的需求、問題或要協調的任務"
 5. 確認合理後，在 GitHub 建立 Issue（含精煉後的問題陳述、驗收標準）
 6. 從 main 切出 feature branch，命名引用 Issue 編號：`feature/{issue-no}-{short-name}`
 
+### 階段一．五：任務分級 (Task Classification)
+
+**核心原則：Git 是 multi-agent 團隊的唯一持久記憶體。**
+Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
+**因此，無論任何等級，Issue + Feature Branch 一律必建，不得跳過。**
+
+依需求性質分為三個等級，決定執行方式：
+
+| 等級 | 判斷條件 | 執行者 |
+|------|----------|--------|
+| **L1 輕量** | 純配置／文件變更、無跨域影響、單一檔案或少量檔案 | Orchestrator 直接執行 |
+| **L2 標準** | 涉及程式碼、API contract、DB schema 其中之一 | 分派給對應專家 Agent |
+| **L3 複雜** | 跨多個 agent 職責、需要並行開發 | worktree 並行，多 Agent 協作 |
+
+**分級聲明格式**（每次必須明確輸出）：
+
+> 任務分級：**L{N}**
+> 理由：{一句話說明判斷依據}
+> 執行方式：{Orchestrator 直接執行 / 分派給 xxx Agent / worktree 並行}
+
 ### 階段二：任務路由 (Task Routing)
 
 1. 將精煉後的需求轉換為高階架構分析任務
