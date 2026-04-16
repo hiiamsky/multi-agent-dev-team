@@ -57,7 +57,7 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 
 | 等級 | 判斷條件 | 執行者 |
 |------|----------|--------|
-| **L1 輕量** | 純配置／文件變更、無跨域影響、單一檔案或少量檔案 | Orchestrator 直接執行 |
+| **L1 輕量** | 純配置／文件變更、無跨域影響、單一檔案或少量檔案 | Orchestrator 直接處理（限非程式碼） |
 | **L2 標準** | 涉及程式碼、API contract、DB schema 其中之一 | 分派給對應專家 Agent |
 | **L3 複雜** | 跨多個 agent 職責、需要並行開發 | worktree 並行，多 Agent 協作 |
 
@@ -65,7 +65,7 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 
 > 任務分級：**L{N}**
 > 理由：{一句話說明判斷依據}
-> 執行方式：{Orchestrator 直接執行 / 分派給 xxx Agent / worktree 並行}
+> 執行方式：{Orchestrator 直接處理（限非程式碼） / 分派給 {SA/SD/QA/QC/backend-pg/frontend-pg/DBA/e2e-test} / worktree 並行}
 
 ### 階段二：任務路由 (Task Routing)
 
