@@ -70,6 +70,14 @@ argument-hint: "描述要實作的後端功能或要檢視的前端/DBA 契約"
 
 ## 運作流程
 
+### 前置步驟：讀取啟動包 (Launch Package)
+
+**開始任何實作前，必須先讀取 Orchestrator 提供的啟動包。**
+
+- 啟動包包含：相關 ADR 連結、MUST-READ commits 摘要、SA/SD 藍圖的 `Agent Handoff Contract`
+- **不得主動查詢 git log 或 ADR 目錄**——所有必要上下文由 Orchestrator 整理後附入
+- 若啟動包缺少必要資訊，回報 Orchestrator 補充，不自行假設
+
 ### 階段一：獨立實作 (Parallel Execution)
 
 1. 讀取 SA/SD 藍圖，確認後端職責範圍、API Contract、資料流
