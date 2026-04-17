@@ -135,7 +135,7 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 2. PR 描述必須包含：功能摘要、涉及的 Agent 產出清單、QA/QC 驗證結果
 3. PR 描述必須包含 QA/QC 安全驗證結果摘要（通過項目 / 偏差項目 / 豁免項目）
 4. **Commit 訊息責任（Orchestrator）**：若本次包含新架構決策，必須在 merge/squash commit 訊息加入 `ADR: docs/specs/adr/ADR-XXX-...`；若影響下游 Agent 決策，必須再加入 `⚠️ MUST-READ`
-   - 格式範例：`feat(scope): ... | ADR: docs/specs/adr/ADR-007-cache-strategy.md | ⚠️ MUST-READ`
+   - 格式範例：`feat(cache): adopt redis draft cache; ADR: docs/specs/adr/ADR-007-cache-strategy.md; ⚠️ MUST-READ`
 5. 提請人類做最終 merge 批准——Orchestrator 不自行合併
 6. 人類批准後，確認 feature branch 已刪除，更新任務狀態為完成
 
