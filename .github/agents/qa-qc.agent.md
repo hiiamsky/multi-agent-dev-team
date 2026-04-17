@@ -29,8 +29,10 @@ argument-hint: "描述要驗證的交付物、規格書或程式碼變更"
 ### 階段一：規格與產出對齊 (Artifact Alignment)
 
 1. 讀取 SA/SD Agent 產出的標準化藍圖，確立為驗證基準
-2. 收集前端 PG、後端 PG、DBA Agent 的程式碼與資料庫結構
-3. 用 #tool:manage_todo_list 建立驗證檢查清單
+2. **檢查 `Agent Handoff Contract` 章節是否存在**：若藍圖缺少此章節，直接退回 SA/SD，不進入後續驗證
+3. 讀取 Orchestrator 提供的相關 ADR 連結，確認實作未違反已凍結決策
+4. 收集前端 PG、後端 PG、DBA Agent 的程式碼與資料庫結構
+5. 用 #tool:manage_todo_list 建立驗證檢查清單
 
 ### 階段二：整合與破壞性驗證 (Integration & Destructive Testing)
 
@@ -163,6 +165,11 @@ argument-hint: "描述要驗證的交付物、規格書或程式碼變更"
 |---|-----------|--------|------|--------|----------|----------|
 | 1 | A05       | Dapper 參數化查詢 | PASS | - | - | - |
 | 2 | A01       | 端點授權檢查 | FAIL | Critical | `src/backend/Controllers/OrderController.cs:L45` | 後端 PG |
+
+### ADR Commit 驗查
+- 若本次 feature branch 包含新架構決策，驗證 merge commit 訊息是否含 ADR 引用（`ADR: docs/specs/adr/ADR-XXX-...`）
+- 若包含影響下游 Agent 的決策變更，驗證 commit 訊息是否含 `⚠️ MUST-READ` 旗標
+- 缺少以上引用時，標記為 **Low 缺陷**，退回 Orchestrator 補充
 
 ### 安全驗證摘要
 - 總檢查項：N
