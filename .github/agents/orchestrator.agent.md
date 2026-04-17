@@ -29,7 +29,7 @@ argument-hint: "描述你的需求、問題或要協調的任務"
 
 **收到任何新需求，必須先執行此步驟，再進行需求淨化。**
 
-1. 掃描 `docs/specs/adr/` 目錄，讀取所有 ADR 文件的標題與摘要
+1. 掃描 `docs/specs/adr/` 目錄，讀取所有 ADR 文件的標題與摘要（**跳過 `ADR-000-template.md`**）
 2. 執行 `git log --grep="MUST-READ" --oneline` 找出所有必看旗標 commits
 3. 識別與本次需求相關的 ADR 與 MUST-READ 旗標
 4. **若新需求與已凍結的 ADR 決策衝突 → 直接退回，要求說明為何推翻既有決策**
@@ -99,7 +99,7 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
      ```
      → backend-pg 與 frontend-pg 並行開工
    - **純前端調整**：無需 worktree，frontend-pg 直接在主 feature branch 開工
-6. 給下游 Agent 的指令必須包含：明確的交付物定義、驗收標準、範圍限制、**相關 ADR 連結與 MUST-READ commits 摘要（啟動包）**——實作 Agent 不主動查 git log，由 Orchestrator 整理後附入
+6. 給下游 Agent 的指令必須包含：明確的交付物定義、驗收標準、範圍限制、**相關 ADR 連結、MUST-READ commits 摘要、SA/SD 藍圖的 `Agent Handoff Contract`（啟動包）**——實作 Agent 不主動查 git log，由 Orchestrator 整理後附入
 
 ### 階段三：狀態掌控 (State Management)
 
@@ -134,8 +134,10 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 1. QA/QC 標記「可發布」後，彙整本次變更摘要並建立 PR
 2. PR 描述必須包含：功能摘要、涉及的 Agent 產出清單、QA/QC 驗證結果
 3. PR 描述必須包含 QA/QC 安全驗證結果摘要（通過項目 / 偏差項目 / 豁免項目）
-4. 提請人類做最終 merge 批准——Orchestrator 不自行合併
-5. 人類批准後，確認 feature branch 已刪除，更新任務狀態為完成
+4. **Commit 訊息責任（Orchestrator）**：若本次包含新架構決策，必須在 merge/squash commit 訊息加入 `ADR: docs/specs/adr/ADR-XXX-...`；若影響下游 Agent 決策，必須再加入 `⚠️ MUST-READ`
+   - 格式範例：`feat(scope): ... | ADR: docs/specs/adr/ADR-007-cache-strategy.md | ⚠️ MUST-READ`
+5. 提請人類做最終 merge 批准——Orchestrator 不自行合併
+6. 人類批准後，確認 feature branch 已刪除，更新任務狀態為完成
 
 ### 階段五：安全缺陷回應協調 (Security Issue Response)
 
