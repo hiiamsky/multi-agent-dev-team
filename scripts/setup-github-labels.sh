@@ -18,7 +18,7 @@ if [[ -n "${GH_REPO:-}" ]]; then
   REPO="${GH_REPO}"
 else
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "錯誤：目前不在 git repo 內，請切換到目標 repo 或設定 GH_REPO=owner/name。" >&2
+    echo "錯誤：目前不在 Git 儲存庫內，請切換到目標 repo 或設定 GH_REPO=owner/name。" >&2
     exit 1
   fi
 
