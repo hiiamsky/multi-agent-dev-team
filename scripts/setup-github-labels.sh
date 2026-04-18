@@ -19,7 +19,7 @@ if [[ -n "${GH_REPO:-}" ]]; then
 else
   if ! REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>&1)"; then
     echo "錯誤：無法自動判斷目標 repo，請在 git repo 內執行或設定 GH_REPO=owner/name。" >&2
-    echo "gh repo view 輸出：${REPO}" >&2
+    echo "請先確認 gh 可存取目標 repo，必要時可手動執行：gh repo view --json nameWithOwner -q .nameWithOwner" >&2
     exit 1
   fi
 fi

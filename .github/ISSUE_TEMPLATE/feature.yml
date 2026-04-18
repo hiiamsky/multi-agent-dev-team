@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         > 本 template 為 multi-agent 工作流使用。請完整填寫欄位，Orchestrator 會根據內容進行需求淨化、分級與路由。
-        > GitHub Issue Form 無法自動把欄位值映射成 Label；Orchestrator 必須在 triage 時依本表單補齊 `1 個 cap:* + 1 個 status:*`（含 `cap:human`）。
+        > GitHub Issue Form 無法自動把欄位值映射成 Label。Orchestrator 必須在 triage 時依本表單補齊 `1 個 cap:* + 1 個 status:*`（含 `cap:human`）。
 
   - type: dropdown
     id: capability-label
