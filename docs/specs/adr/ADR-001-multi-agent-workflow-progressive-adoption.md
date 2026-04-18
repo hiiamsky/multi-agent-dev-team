@@ -7,6 +7,8 @@
 
 ---
 
+**TL;DR**：Multi-agent 工作流採漸進式導入，Phase 1 即納入 Human-in-the-Loop。
+
 ## 摘要
 
 Multi-agent 團隊採「漸進式導入」策略：先落地 GitHub Labels（含 `cap:human`）+ Issue Template 的最小可行版本；WORKFLOW.md、Orchestrator 守門模式、自動調度器等進階機制刻意延後，待真實痛點出現且符合啟動觸發條件後才導入。同時，Phase 1 即明確納入「Human-in-the-Loop」機制，確保 AI agent 不會假設人類已完成外部協作事項。
