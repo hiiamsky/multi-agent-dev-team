@@ -14,10 +14,14 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
-REPO="${GH_REPO:-$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)}"
-if [[ -z "${REPO}" ]]; then
-  echo "錯誤：無法判斷目標 repo，請在 git repo 內執行或設定 GH_REPO=owner/name。" >&2
-  exit 1
+if [[ -n "${GH_REPO:-}" ]]; then
+  REPO="${GH_REPO}"
+else
+  if ! REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>&1)"; then
+    echo "錯誤：無法自動判斷目標 repo，請在 git repo 內執行或設定 GH_REPO=owner/name。" >&2
+    echo "gh repo view 輸出：${REPO}" >&2
+    exit 1
+  fi
 fi
 
 echo "目標 repo: ${REPO}"
