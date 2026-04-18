@@ -13,7 +13,7 @@ body:
     id: capability-label
     attributes:
       label: Capability Label（必填）
-      description: 建立者先選擇建議能力標籤，Orchestrator 於 triage 時確認或修正後套用到 issue。
+      description: 建立者必須先選擇最接近的能力標籤（作為 triage 輸入）；Orchestrator 於 triage 時確認或修正後正式套用到 issue。
       options:
         - cap:sa-sd
         - cap:dba
@@ -29,7 +29,7 @@ body:
     id: status-label
     attributes:
       label: Status Label（必填）
-      description: 建立者先選擇建議狀態標籤，Orchestrator 於 triage 時確認或修正後套用到 issue。
+      description: 建立者必須先選擇最接近的狀態標籤（作為 triage 輸入）；Orchestrator 於 triage 時確認或修正後正式套用到 issue。
       options:
         - status:ready
         - status:claimed

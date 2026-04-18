@@ -17,9 +17,13 @@ fi
 if [[ -n "${GH_REPO:-}" ]]; then
   REPO="${GH_REPO}"
 else
-  if ! REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>&1)"; then
-    echo "錯誤：無法自動判斷目標 repo，請在 git repo 內執行或設定 GH_REPO=owner/name。" >&2
-    echo "請先確認 gh 可存取目標 repo，必要時可手動執行：gh repo view --json nameWithOwner -q .nameWithOwner" >&2
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "錯誤：目前不在 git repo 內，請切換到目標 repo 或設定 GH_REPO=owner/name。" >&2
+    exit 1
+  fi
+
+  if ! REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"; then
+    echo "錯誤：gh 無法讀取目前 repo，請確認你有存取權限或設定 GH_REPO=owner/name。" >&2
     exit 1
   fi
 fi
