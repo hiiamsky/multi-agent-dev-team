@@ -7,6 +7,36 @@ body:
     attributes:
       value: |
         > 本 template 為 multi-agent 工作流使用。請完整填寫欄位，Orchestrator 會根據內容進行需求淨化、分級與路由。
+        > GitHub Issue Form 無法自動把欄位值映射成 Label；Orchestrator 必須在 triage 時依本表單補齊 `1 個 cap:* + 1 個 status:*`（含 `cap:human`）。
+
+  - type: dropdown
+    id: capability-label
+    attributes:
+      label: Capability Label（必填）
+      description: 建立者先選擇建議能力標籤，Orchestrator 於 triage 時確認或修正後套用到 issue。
+      options:
+        - cap:sa-sd
+        - cap:dba
+        - cap:backend-pg
+        - cap:frontend-pg
+        - cap:qa-qc
+        - cap:e2e-test
+        - cap:human
+    validations:
+      required: true
+
+  - type: dropdown
+    id: status-label
+    attributes:
+      label: Status Label（必填）
+      description: 建立者先選擇建議狀態標籤，Orchestrator 於 triage 時確認或修正後套用到 issue。
+      options:
+        - status:ready
+        - status:claimed
+        - status:blocked
+        - status:review
+    validations:
+      required: true
 
   - type: textarea
     id: problem-statement
@@ -60,7 +90,9 @@ body:
     id: security-tags
     attributes:
       label: 安全標籤 (Security Tags)
-      description: 由 Orchestrator 進行需求淨化時勾選，SA/SD 須對勾選項目產出安全設計。
+      description: |
+        建立者可先勾選，Orchestrator 於需求淨化時確認或修正；若不確定可先留空。
+        SA/SD 須對勾選項目產出安全設計。
       options:
         - label: 涉及認證／授權
         - label: 涉及敏感資料處理
@@ -72,7 +104,8 @@ body:
     attributes:
       label: 外部協作需求 (Human-in-the-Loop) — 三層漏斗判斷
       description: |
-        由 Orchestrator 於需求淨化時套用。任一層命中即拆出 `cap:human` 子 issue 並以 `depends-on` 鎖住後續任務。詳細判準見 ADR-001。
+        建立者可先勾選，Orchestrator 於需求淨化時確認或修正；若不確定可先留空。
+        勾選任一項代表需拆出 `cap:human` 子 issue，並以 `depends-on` 鎖住後續任務。詳細判準見 ADR-001。
       options:
         - label: 第一層（能不能做）— 需實體設備／法律身份／外部帳號／金錢支出／實體訪談
         - label: 第二層（該不該做）— 不可逆決策／品牌形象／法規／美感／跨角色共識

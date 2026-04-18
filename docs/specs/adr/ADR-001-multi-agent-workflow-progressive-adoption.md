@@ -7,7 +7,7 @@
 
 ---
 
-**TL;DR**：Multi-agent 工作流採漸進式導入，Phase 1 即納入 Human-in-the-Loop。
+**TL;DR**：漸進導入，首階納入人協作。
 
 ## 摘要
 
@@ -199,7 +199,7 @@ Issue #100（父卡）：接入 LINE Webhook
 > ⚠️ MUST-READ：以下規則由此 ADR 約束，下游 Agent 不得違反。
 
 - **規則 1**：建立 issue 時必須使用 `.github/ISSUE_TEMPLATE/feature.yml` 表單，必填欄位（問題陳述、驗收標準、Scope 內）不得留空
-- **規則 2**：每張 issue 必須同時帶**一個** `cap:*` 能力標籤與**一個** `status:*` 狀態標籤
+- **規則 2**：每張 issue 必須同時帶**一個** `cap:*` 能力標籤與**一個** `status:*` 狀態標籤；Phase 1 由 Orchestrator 依 Feature Form 的必填欄位於 triage 補齊，未補齊不得進 `status:ready`
 - **規則 3**：Phase 2 機制（狀態機、依賴自動解鎖、認領鎖、WIP limit、守門模式）在未正式啟動前，**不得提前使用**；如需使用請先升級 ADR
 - **規則 4**：Orchestrator 在每次需求淨化時，除既有的「階段零 ADR 查詢」外，需同步檢視本 ADR 的「啟動觸發條件」是否達標；若達標必須提請人類決定是否升級 Phase
 - **規則 5**：任何偏離本 ADR 的流程變更，必須新建 ADR 並明確標示取代或修訂本 ADR
