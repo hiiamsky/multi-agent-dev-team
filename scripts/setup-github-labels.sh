@@ -11,6 +11,7 @@ gh label create "cap:backend-pg"  --color "5319E7" --description "Capability: �
 gh label create "cap:frontend-pg" --color "FBCA04" --description "Capability: 前端開發" --force
 gh label create "cap:qa-qc"       --color "B60205" --description "Capability: 品質驗證" --force
 gh label create "cap:e2e-test"    --color "D93F0B" --description "Capability: E2E 自動化測試" --force
+gh label create "cap:human"       --color "000000" --description "Capability: 需要人類或外部協作（嚴格使用）" --force
 
 echo "建立 Status Labels..."
 gh label create "status:ready"    --color "0E8A16" --description "Status: 可被認領" --force

@@ -67,6 +67,17 @@ body:
         - label: 涉及外部輸入
         - label: 涉及不可逆操作
 
+  - type: checkboxes
+    id: human-collaboration
+    attributes:
+      label: 外部協作需求 (Human-in-the-Loop) — 三層漏斗判斷
+      description: |
+        由 Orchestrator 於需求淨化時套用。任一層命中即拆出 `cap:human` 子 issue 並以 `depends-on` 鎖住後續任務。詳細判準見 ADR-001。
+      options:
+        - label: 第一層（能不能做）— 需實體設備／法律身份／外部帳號／金錢支出／實體訪談
+        - label: 第二層（該不該做）— 不可逆決策／品牌形象／法規／美感／跨角色共識
+        - label: 第三層（敢不敢做）— 需求模糊／缺測試資料／缺真實環境／驗收標準不清
+
   - type: textarea
     id: handoff-contract
     attributes:
@@ -83,8 +94,8 @@ body:
   - type: input
     id: task-level
     attributes:
-      label: 任務分級 (L1 / L2 / L3)
-      description: 由 Orchestrator 判定。L1=輕量、L2=標準、L3=複雜。
+      label: 任務分級 (L0 / L1 / L2 / L3)
+      description: 由 Orchestrator 判定。L0=外部阻塞、L1=輕量、L2=標準、L3=複雜。
       placeholder: 例：L3
     validations:
       required: false
