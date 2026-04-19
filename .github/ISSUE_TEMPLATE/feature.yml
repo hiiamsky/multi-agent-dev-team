@@ -6,14 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        > 本 template 為 multi-agent 工作流使用。請完整填寫欄位，Orchestrator 會根據內容進行需求淨化、分級與路由。
-        > GitHub Issue Form 無法自動把欄位值映射成 Label。Orchestrator 必須在 triage 時依本表單補齊 `1 個 cap:* + 1 個 status:*`（含 `cap:human`）。
+        > 本 template 為 multi-agent 工作流使用。請完整填寫欄位,Orchestrator 會根據內容進行需求淨化、分級與路由。
+        > GitHub Issue Form 無法自動把欄位值映射成 Label。Orchestrator 必須在 triage 時依本表單補齊 `1 個 cap:* + 1 個 status:*`(含 `cap:human`)。
 
   - type: dropdown
     id: capability-label
     attributes:
-      label: Capability Label（必填）
-      description: 建立者必須先選擇最接近的能力標籤（作為 triage 輸入）；Orchestrator 於 triage 時確認或修正後正式套用到 issue。
+      label: Capability Label(必填)
+      description: 建立者必須先選擇最接近的能力標籤(作為 triage 輸入);Orchestrator 於 triage 時確認或修正後正式套用到 issue。
       options:
         - cap:sa-sd
         - cap:dba
@@ -28,8 +28,8 @@ body:
   - type: dropdown
     id: status-label
     attributes:
-      label: Status Label（必填）
-      description: 建立者必須先選擇最接近的狀態標籤（作為 triage 輸入）；Orchestrator 於 triage 時確認或修正後正式套用到 issue。
+      label: Status Label(必填)
+      description: 建立者必須先選擇最接近的狀態標籤(作為 triage 輸入);Orchestrator 於 triage 時確認或修正後正式套用到 issue。
       options:
         - status:ready
         - status:claimed
@@ -42,8 +42,8 @@ body:
     id: problem-statement
     attributes:
       label: 問題陳述 (Problem Statement)
-      description: 以業務痛點或物理限制描述為什麼需要這張卡，避免「業界通常這樣做」的理由。
-      placeholder: 例：商家無法快速查看今日剩餘庫存，導致超賣風險。
+      description: 以業務痛點或物理限制描述為什麼需要這張卡,避免「業界通常這樣做」的理由。
+      placeholder: 例:商家無法快速查看今日剩餘庫存,導致超賣風險。
     validations:
       required: true
 
@@ -63,7 +63,7 @@ body:
     id: in-scope
     attributes:
       label: Scope 內
-      description: 明確列出本卡涵蓋範圍，避免 scope creep。
+      description: 明確列出本卡涵蓋範圍,避免 scope creep。
     validations:
       required: true
 
@@ -71,7 +71,7 @@ body:
     id: out-of-scope
     attributes:
       label: Scope 外
-      description: 明確列出本卡不處理的項目，避免下游 agent 誤會。
+      description: 明確列出本卡不處理的項目,避免下游 agent 誤會。
     validations:
       required: false
 
@@ -79,7 +79,8 @@ body:
     id: dependencies
     attributes:
       label: 依賴關係 (Dependencies)
-      description: 若有依賴其他 issue，使用 `depends-on: #N` 語法逐行列出。Orchestrator 會用這個欄位判斷是否能進 `status:ready`。
+      description: |
+        若有依賴其他 issue,使用 `depends-on: #N` 語法逐行列出。Orchestrator 會用這個欄位判斷是否能進 `status:ready`。
       placeholder: |
         depends-on: #41
         depends-on: #42
@@ -91,36 +92,37 @@ body:
     attributes:
       label: 安全標籤 (Security Tags)
       description: |
-        建立者可先勾選，Orchestrator 於需求淨化時確認或修正；若不確定可先留空。
+        建立者可先勾選,Orchestrator 於需求淨化時確認或修正;若不確定可先留空。
         SA/SD 須對勾選項目產出安全設計。
       options:
-        - label: 涉及認證／授權
+        - label: 涉及認證 / 授權
         - label: 涉及敏感資料處理
         - label: 涉及外部輸入
         - label: 涉及不可逆操作
+        - label: 涉及 AI / LLM 功能(含對外 AI 能力或修改本 multi-agent 系統協作設計)
 
   - type: checkboxes
     id: human-collaboration
     attributes:
       label: 外部協作需求 (Human-in-the-Loop) — 三層漏斗判斷
       description: |
-        建立者可先勾選，Orchestrator 於需求淨化時確認或修正；若不確定可先留空。
-        勾選任一項代表需拆出 `cap:human` 子 issue，並以 `depends-on` 鎖住後續任務。詳細判準見 ADR-001。
+        建立者可先勾選,Orchestrator 於需求淨化時確認或修正;若不確定可先留空。
+        勾選任一項代表需拆出 `cap:human` 子 issue,並以 `depends-on` 鎖住後續任務。詳細判準見 ADR-001。
       options:
-        - label: 第一層（能不能做）— 需實體設備／法律身份／外部帳號／金錢支出／實體訪談
-        - label: 第二層（該不該做）— 不可逆決策／品牌形象／法規／美感／跨角色共識
-        - label: 第三層（敢不敢做）— 需求模糊／缺測試資料／缺真實環境／驗收標準不清
+        - label: 第一層(能不能做)— 需實體設備 / 法律身份 / 外部帳號 / 金錢支出 / 實體訪談
+        - label: 第二層(該不該做)— 不可逆決策 / 品牌形象 / 法規 / 美感 / 跨角色共識
+        - label: 第三層(敢不敢做)— 需求模糊 / 缺測試資料 / 缺真實環境 / 驗收標準不清
 
   - type: textarea
     id: handoff-contract
     attributes:
-      label: Agent Handoff Contract（啟動包）
+      label: Agent Handoff Contract(啟動包)
       description: 由 SA/SD 填寫。包含輸入契約、輸出契約、變更檔案清單、相關 ADR 連結。
       placeholder: |
-        - 輸入：Redis 草稿 Session（P3-001 產出）
-        - 輸出：PostgreSQL published_menus row + Redis cache
-        - 變更檔案：見 docs/specs/P3-002-publish-inventory-spec.md §11
-        - 相關 ADR：docs/specs/adr/ADR-00X-*.md
+        - 輸入:Redis 草稿 Session(P3-001 產出)
+        - 輸出:PostgreSQL published_menus row + Redis cache
+        - 變更檔案:見 docs/specs/P3-002-publish-inventory-spec.md §11
+        - 相關 ADR:docs/specs/adr/ADR-00X-*.md
     validations:
       required: false
 
@@ -129,6 +131,6 @@ body:
     attributes:
       label: 任務分級 (L0 / L1 / L2 / L3)
       description: 由 Orchestrator 判定。L0=外部阻塞、L1=輕量、L2=標準、L3=複雜。
-      placeholder: 例：L3
+      placeholder: 例:L3
     validations:
       required: false
