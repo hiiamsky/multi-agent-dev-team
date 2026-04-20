@@ -230,6 +230,8 @@ project-root/
     │   │   ├── supply-chain-tooling.md      ← 軟體供應鏈工具鏈(SCA/SBOM/lockfile)
     │   │   ├── pdpa-compliance.md           ← 台灣個資法合規
     │   │   └── severity-matrix.md           ← 缺陷分級矩陣
+    │   ├── threat-model-analyst/            ← STRIDE-A 威脅建模執行工具（/threat-model-analyst）
+    │   │   └── SKILL.md                     ← 含 references/ 子目錄（skill 內部資源，無需直接引用）
     │   ├── git-conventions/                 ← Git commit 格式、分支命名、PR 描述規範
     │   │   └── SKILL.md
     │   ├── bdd-conventions/                 ← BDD Story/Scenario 格式、SC-XX 編號、API 推導規則

@@ -115,7 +115,15 @@ model: Claude Opus 4.7
 
 **僅當 Orchestrator 精煉需求中標註了安全標籤時觸發。**
 
-針對被勾選的安全面向,載入 `security-baseline` skill 對應章節後,產出以下分析:
+針對被勾選的安全面向,載入 `security-baseline` skill 對應章節後,產出以下分析。
+
+> 🔍 **何時執行完整 STRIDE-A 威脅建模**：若本次需求符合以下任一條件，在開始安全設計前先執行 `/threat-model-analyst`，以其輸出的 DFD 圖與 STRIDE-A 分析作為安全設計的輸入依據：
+> - 新系統 / 全新模組（無前例可參考）
+> - 涉及新的信任邊界（新增第三方整合、新的認證邊界、新的資料分類層級）
+> - 重大架構變更（新增 microservice、引入 message queue、變更 DB 拓撲）
+> - 安全標籤同時勾選三項以上（複雜安全需求）
+>
+> 日常功能迭代（已知邊界內的新端點、UI 調整、效能優化）**不需要**執行完整威脅建模，依下方各節直接產出安全設計即可。
 
 #### 1. 信任邊界與資料流敏感度分析
 
@@ -154,13 +162,18 @@ model: Claude Opus 4.7
 - 指定防護機制:軟刪除(Soft Delete) vs 硬刪除、操作前快照(Before Image)、雙重確認流程
 - 定義操作的冪等性(Idempotency)要求:重複提交同一請求是否安全
 - 稽核日誌要求:不可逆操作必須記錄操作前後的完整狀態
-#### 6. AI / LLM 功能安全設計 (若安全標籤勾選「涉及 AI / LLM 功能」)
+
+#### 6. AI / LLM 功能安全設計（若安全標籤勾選「涉及 AI / LLM 功能」）
 
 依 `owasp-llm-top10.md` 產出以下設計:
 - Prompt Injection 緩解:外部內容以 `<external_content>` 標籤包裹,system prompt 明確聲明不得執行其指令
 - Excessive Agency 邊界:定義 AI 工具的白名單、權限範圍、Human-in-the-Loop 觸發條件
 - System Prompt 保護:確認 prompt 中不含硬編碼敏感資訊
 - Output Handling:定義 LLM 輸出的驗證與清洗策略
+
+#### 增量威脅建模（後續功能迭代適用）
+
+若本功能所在的模組已有歷史威脅模型報告（`docs/reviews/{module}-threat-model.md`），可改執行 `/threat-model-analyst` 的 **Incremental 模式**——以差異追蹤取代完整 STRIDE-A 分析，大幅減少重工，同時確保新變更的威脅不被遺漏。
 
 **若需求的安全標籤全部未勾選 (「無額外安全需求」),此階段標註「不適用」並跳過。**
 
@@ -264,12 +277,6 @@ model: Claude Opus 4.7
 ### 不可逆操作防護(若適用)
 | 操作 | 不可逆類型 | 防護機制 | 冪等性 | 稽核要求 |
 |------|-----------|----------|--------|----------|
-
-### AI / LLM 功能安全設計 (若適用)
-- Prompt Injection 緩解策略
-- Agent 工具白名單
-- Human-in-the-Loop 觸發條件
-- Output 驗證規則
 
 ## Agent Handoff Contract
 
