@@ -98,6 +98,7 @@ model: Claude Opus 4.7
 
 1. **個資法合規**(若涉及個資) → `pdpa-compliance.md` §QA/QC 驗證檢查清單 全部勾選
 2. **OWASP Web A01-A10** → `owasp-web-top10.md` 逐項驗證
+   - §A05 Injection 含 SQL 層：**額外載入 `sql-code-review` skill** 的 SQL Security Checklist，逐條驗證後端 Dapper 查詢（參數化語法、函式陷阱、SELECT \* 暴露）
 3. **OWASP API API1-API10**(若涉及對外 API) → `owasp-api-top10.md` 逐項驗證
 4. **OWASP LLM LLM01-LLM10**(若涉及 AI / LLM 功能) → `owasp-llm-top10.md` 逐項驗證
 5. **供應鏈檢查** → `supply-chain-tooling.md` §QA/QC 驗證檢查清單

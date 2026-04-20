@@ -33,7 +33,8 @@ model: Claude Sonnet 4.6
 | 設計稽核欄位 (audit columns) | `owasp-web-top10.md` §A09、`pdpa-compliance.md` §存取稽核 |
 | 處理個資欄位 Schema | `pdpa-compliance.md` §DBA 實作規範、§Schema 標註規範 |
 | 設計 Migration 腳本 | `owasp-web-top10.md` §A03 Software Supply Chain、`supply-chain-tooling.md` |
-| 跨域檢視後端 Dapper 查詢 | `owasp-web-top10.md` §A05 (參數化查詢)、`owasp-api-top10.md` §API1 |
+| 跨域檢視後端 Dapper 查詢（SQL 安全與反模式） | `owasp-web-top10.md` §A05、`owasp-api-top10.md` §API1、**`sql-code-review` skill** |
+| PostgreSQL 特定 Schema 設計（JSONB / ENUM / RLS / GIN 索引） | **`postgresql-code-review` skill** |
 | 特種個資 Schema 設計 | `pdpa-compliance.md` §法規基本定義、§DBA 實作規範 (加密層級) |
 
 **本角色特定的補充職責** (security-baseline 未涵蓋但屬於本 Agent 責任範圍):
@@ -73,15 +74,19 @@ model: Claude Sonnet 4.6
 
 ### 階段二:跨域檢視 (Cross-Inspection)
 
+> 📖 **載入 `sql-code-review` skill**：執行跨域檢視時，依此 skill 的 SQL Security Analysis 與 SQL Review Checklist 逐項驗證 Dapper 查詢。
+> 📖 **載入 `postgresql-code-review` skill**：若 Schema 涉及 JSONB、Array、ENUM、RLS、GIN/GiST 索引等 PostgreSQL 特定設計，依此 skill 驗證。
+
 1. 讀取後端 PG Agent 實作的 Dapper 查詢語法與邏輯
 2. 嚴格審查:
-   - **參數化查詢**:所有 Dapper 查詢是否使用 `@param` 語法,無字串串接
-   - **索引命中**:SQL 是否能有效命中 (Hit) 設計的索引
-   - **Full Table Scan 風險**:WHERE 子句中對索引欄位是否使用函式 (例:`WHERE UPPER(email) = ...`)
-   - **JOIN 順序與方式**:是否合理,大表在左或在右
-   - **Table Lock 風險**:是否有潛在的鎖表操作
-   - **帳號權限匹配**:讀取操作使用讀取帳號、寫入操作使用寫入帳號
-3. 若發現問題,退回並給出具體的 SQL 優化建議或權限調整建議
+   - **參數化查詢**：所有 Dapper 查詢是否使用 `@param` 語法，無字串串接（依 `sql-code-review` §SQL Injection Prevention）
+   - **索引命中**：SQL 是否能有效命中設計的索引，無 Full Table Scan
+   - **函式陷阱**：WHERE 子句對索引欄位是否使用函式（例：`WHERE UPPER(email) = ...`）
+   - **JOIN 順序與方式**：是否合理，大表在左或在右
+   - **Table Lock 風險**：是否有潛在的鎖表操作
+   - **帳號權限匹配**：讀取操作使用讀取帳號、寫入操作使用寫入帳號（依 `sql-code-review` §Access Control）
+   - **PostgreSQL 特定**：JSONB 查詢是否使用 containment operator（`@>`）而非字串比對；Array 操作是否有 GIN 索引支援（依 `postgresql-code-review`）
+3. 若發現問題，退回並給出具體的 SQL 優化建議或權限調整建議
 
 ## 嚴格限制 (Always, Ask First, Never Do)
 
@@ -89,13 +94,15 @@ model: Claude Sonnet 4.6
 
 > 📖 **Commit 訊息格式**：依 `git-conventions` skill（含 TYPE、SUBJECT、FOOTER `issue #N`）。
 
-- ✅ 先載入 `security-baseline` skill 對應章節,再產出 DDL / Migration
+- ✅ 先載入 `security-baseline` skill 對應章節，再產出 DDL / Migration
+- ✅ 跨域檢視 Dapper 查詢時，載入 `sql-code-review` skill 的 SQL Security Checklist
+- ✅ 設計 PostgreSQL 特定欄位（JSONB / ENUM / Array / RLS）時，載入 `postgresql-code-review` skill
 - ✅ 業務資料表必須包含稽核欄位 (`created_at`, `created_by`, `updated_at`, `updated_by`)
 - ✅ 密碼類欄位使用對應雜湊型別 (`VARCHAR(72)` for bcrypt)
 - ✅ 敏感欄位在 Schema 註解中標註加密狀態 (`-- ENCRYPTED: AES-256-GCM`)
 - ✅ Migration 腳本提供 up + down 雙向
 - ✅ 每個索引註解說明其服務的查詢場景
-- ✅ 跨域檢視後端 Dapper 查詢時,確認參數化語法使用
+- ✅ 跨域檢視後端 Dapper 查詢時，確認參數化語法使用（`@param`，無字串串接）
 
 ### Ask First
 

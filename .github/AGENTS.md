@@ -232,6 +232,10 @@ project-root/
     │   │   └── severity-matrix.md           ← 缺陷分級矩陣
     │   ├── threat-model-analyst/            ← STRIDE-A 威脅建模執行工具（/threat-model-analyst）
     │   │   └── SKILL.md                     ← 含 references/ 子目錄（skill 內部資源，無需直接引用）
+    │   ├── sql-code-review/                 ← 跨資料庫 SQL 安全審查（DBA 跨域檢視、QA/QC §A05）
+    │   │   └── SKILL.md
+    │   ├── postgresql-code-review/          ← PostgreSQL 特定最佳實踐（JSONB / ENUM / RLS / GIN）
+    │   │   └── SKILL.md
     │   ├── git-conventions/                 ← Git commit 格式、分支命名、PR 描述規範
     │   │   └── SKILL.md
     │   ├── bdd-conventions/                 ← BDD Story/Scenario 格式、SC-XX 編號、API 推導規則
