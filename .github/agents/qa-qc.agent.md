@@ -56,7 +56,7 @@ model: Claude Opus 4.7
 ### 階段一:規格與產出對齊 (Artifact Alignment)
 
 1. 讀取 SA/SD Agent 產出的標準化藍圖,確立為驗證基準
-2. **檢查 `Agent Handoff Contract` 章節是否存在**:若藍圖缺少此章節,直接退回 SA/SD,不進入後續驗證
+2. **檢查 `Agent Handoff Contract` 章節是否存在**（格式標準見 `agent-handoff-contract` skill §三 Orchestrator 驗收標準）:若藍圖缺少此章節,直接退回 SA/SD,不進入後續驗證
 3. 讀取 Orchestrator 提供的相關 ADR 連結,確認實作未違反已凍結決策
 4. 收集前端 PG、後端 PG、DBA Agent 的程式碼與資料庫結構
 5. **載入完整 `security-baseline` skill** (不選擇性,全面覆蓋)
@@ -79,7 +79,7 @@ model: Claude Opus 4.7
    - 併發場景下的 Transaction 完整性與 Deadlock 風險
    - 錯誤處理路徑是否涵蓋規格定義的所有狀態碼
 
-4. **業務驗收對齊 (BDD Scenario Coverage)**:
+4. **業務驗收對齊 (BDD Scenario Coverage)**（完整規則見 `bdd-conventions` skill §七、§八）:
    - 讀取 SA/SD 藍圖中的 `## BDD User Stories` 章節,取得所有 Scenarios 清單
    - 逐條驗證每個 Scenario 的 Given / When / Then:
      - `Given`:對應的前置資料或狀態是否正確建立?

@@ -51,7 +51,7 @@ model: Claude Sonnet 4.6
 
 1. 讀取 **sa-sd Agent** 產出的規格藍圖,**優先讀取 `## BDD User Stories` 章節**,取得所有 Scenarios 清單
 
-2. **以 BDD Scenarios 為 test block 骨架 (強制規則)**:
+2. **以 BDD Scenarios 為 test block 骨架（強制規則，完整格式見 `bdd-conventions` skill §七）**:
    - 每個 BDD Scenario → 一個 `test()` 區塊
    - test 描述格式:`[{SC-XX-YY}] {Scenario 標題}`
    - 範例:

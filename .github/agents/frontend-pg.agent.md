@@ -49,7 +49,7 @@ model: Claude Sonnet 4.6
 
 **開始任何實作前,必須先讀取 Orchestrator 提供的啟動包。**
 
-- 啟動包包含:相關 ADR 連結、MUST-READ commits 摘要、SA/SD 藍圖的 `Agent Handoff Contract`
+- 啟動包包含:相關 ADR 連結、MUST-READ commits 摘要、SA/SD 藍圖的 `Agent Handoff Contract`（格式見 `agent-handoff-contract` skill）
 - **不得主動查詢 git log 或 ADR 目錄**——所有必要上下文由 Orchestrator 整理後附入
 - 若啟動包缺少必要資訊,回報 Orchestrator 補充,不自行假設
 
@@ -78,6 +78,8 @@ model: Claude Sonnet 4.6
 ## 嚴格限制 (Always, Ask First, Never Do)
 
 ### Always Do
+
+> 📖 **Commit 訊息格式**：依 `git-conventions` skill（含 TYPE、SUBJECT、FOOTER `issue #N`）。
 
 - ✅ 先載入 `security-baseline` skill 對應章節,再開始撰寫程式碼
 - ✅ 動態內容一律透過框架跳脫機制渲染 (React JSX、Vue Template)

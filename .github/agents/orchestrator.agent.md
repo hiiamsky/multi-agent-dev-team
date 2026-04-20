@@ -139,8 +139,8 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 2. 建立任務拆解清單,追蹤任務拆解與進度
 3. 將任務準確分派給對應的專家 Agent (@SA-SD / @QA-QC)
 4. **SA/SD 交派規則**:必須明確要求 SA/SD「先產出 BDD User Stories (含所有 Scenarios),再產出技術藍圖;API contract 從 BDD Then 推導」。交付物驗收標準須包含:
-   - 藍圖頂部有 BDD User Stories 章節與 Frozen Contract 聲明
-   - 藍圖底部必須有 `Agent Handoff Contract` 章節
+   - 藍圖頂部有 BDD User Stories 章節與 Frozen Contract 聲明（格式見 `bdd-conventions` skill）
+   - 藍圖底部必須有 `## Agent Handoff Contract` 章節（格式見 `agent-handoff-contract` skill）
    - 若需求有勾選安全標籤,藍圖須包含「安全設計」章節
    - 若有新架構決策,必須建立對應 ADR 文件於 `docs/specs/adr/`
 
@@ -187,12 +187,13 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 
 ### 階段四:PR 協調與交付 (PR Coordination)
 
+> 📖 **Commit 格式與 PR 描述格式**：依 `git-conventions` skill §五 FOOTER 規則與 §九 PR 描述格式。
+
 1. QA/QC 標記「可發布」後,彙整本次變更摘要並建立 PR
-2. PR 描述必須包含:功能摘要、涉及的 Agent 產出清單、QA/QC 驗證結果
-3. PR 描述必須包含 QA/QC 安全驗證結果摘要 (通過項目 / 偏差項目 / 豁免項目)
-4. **Commit 訊息責任 (Orchestrator)**:若本次包含新架構決策,必須在 merge / squash commit 訊息加入 `ADR: docs/specs/adr/ADR-XXX-...`;若影響下游 Agent 決策,必須再加入 `⚠️ MUST-READ`
-5. 提請人類做最終 merge 批准——**Orchestrator 不自行合併**
-6. 人類批准後,確認 feature branch 已刪除,更新任務狀態為完成
+2. PR 描述格式依 `git-conventions` skill §九（含功能摘要、Agent 產出清單、QA/QC 驗證結果、安全驗證摘要）
+3. **Commit 訊息責任 (Orchestrator)**:若本次包含新架構決策,必須加入 `ADR: docs/specs/adr/ADR-XXX-...`;若影響下游 Agent 決策,必須加入 `⚠️ MUST-READ`（格式見 `git-conventions` skill §五）
+4. 提請人類做最終 merge 批准——**Orchestrator 不自行合併**
+5. 人類批准後,確認 feature branch 已刪除,更新任務狀態為完成
 
 ### 階段五:安全缺陷回應協調 (Security Issue Response)
 

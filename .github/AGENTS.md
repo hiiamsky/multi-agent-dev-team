@@ -222,14 +222,20 @@ project-root/
     │   ├── qa-qc.agent.md
     │   └── e2e-test.agent.md
     ├── skills/
-    │   └── security-baseline/               ← 安全規範權威來源
-    │       ├── SKILL.md                     ← 總索引、適用對象對照表、斷鏈防護規則
-    │       ├── owasp-web-top10.md           ← OWASP Web Top 10:2025
-    │       ├── owasp-api-top10.md           ← OWASP API Security Top 10:2023
-    │       ├── owasp-llm-top10.md           ← OWASP LLM Top 10:2025
-    │       ├── supply-chain-tooling.md      ← 軟體供應鏈工具鏈(SCA/SBOM/lockfile)
-    │       ├── pdpa-compliance.md           ← 台灣個資法合規
-    │       └── severity-matrix.md           ← 缺陷分級矩陣
+    │   ├── security-baseline/               ← 安全規範權威來源
+    │   │   ├── SKILL.md                     ← 總索引、適用對象對照表、斷鏈防護規則
+    │   │   ├── owasp-web-top10.md           ← OWASP Web Top 10:2025
+    │   │   ├── owasp-api-top10.md           ← OWASP API Security Top 10:2023
+    │   │   ├── owasp-llm-top10.md           ← OWASP LLM Top 10:2025
+    │   │   ├── supply-chain-tooling.md      ← 軟體供應鏈工具鏈(SCA/SBOM/lockfile)
+    │   │   ├── pdpa-compliance.md           ← 台灣個資法合規
+    │   │   └── severity-matrix.md           ← 缺陷分級矩陣
+    │   ├── git-conventions/                 ← Git commit 格式、分支命名、PR 描述規範
+    │   │   └── SKILL.md
+    │   ├── bdd-conventions/                 ← BDD Story/Scenario 格式、SC-XX 編號、API 推導規則
+    │   │   └── SKILL.md
+    │   └── agent-handoff-contract/          ← Handoff Contract 模板與必填欄位定義
+    │       └── SKILL.md
     └── ISSUE_TEMPLATE/
         └── feature.yml                      ← Issue 模板(含 5 個安全標籤)
 ```
@@ -237,6 +243,11 @@ project-root/
 ## 任務交接協議
 
 Agent 之間不直接傳訊息,而是透過**寫檔 → 讀檔**的約定完成交接。
+
+> 📖 **相關 Skill**：
+> - BDD User Stories 的格式規範 → `bdd-conventions` skill
+> - Agent Handoff Contract 的模板與必填欄位 → `agent-handoff-contract` skill
+> - Commit 訊息與 PR 描述格式 → `git-conventions` skill
 
 ### 寫入規則(上游)
 
@@ -345,6 +356,8 @@ Orchestrator 在需求淨化階段必須標註以下 5 項安全面向,由 SA/SD
 核心精神:**每個安全標籤勾選項必須在下游產出對應設計/實作/驗證**,任一環節斷鏈皆視為缺陷退回。
 
 ## Git Commit Message 規範
+
+> 📖 **權威來源**：`.github/skills/git-conventions/SKILL.md`。以下為摘要，完整規則（TYPE 清單、FOOTER 必填規則、PR 描述格式、⚠️ MUST-READ 觸發條件）以 skill 為準。
 
 所有 Agent 在產生 commit 時,必須遵守以下格式。
 
