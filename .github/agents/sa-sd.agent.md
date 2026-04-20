@@ -50,6 +50,26 @@ model: Claude Opus 4.7
 - 威脅建模(Threat Modeling):識別信任邊界、資料流、濫用情境
 - 若被標註的安全標籤缺少對應設計章節,QA/QC 將視為 Critical 缺陷退回本 Agent
 
+## 🏗️ .NET Clean Architecture 設計參考
+
+**當本次設計涉及後端 .NET 實作時,設計藍圖必須與下列 skill 保持一致**,以避免下游後端 PG 產出與藍圖不符:
+
+| 設計面向 | 參考 Skill |
+|---------|-----------|
+| 解決方案分層 / 專案參考拓撲 | `dotnet-clean-architecture` |
+| Aggregate Root / Value Object / Factory 設計 | `dotnet-domain-entity` |
+| Domain Events 與事件流拓撲 | `dotnet-domain-events` |
+| 可靠訊息 / 事件最終一致性設計 | `dotnet-outbox-pattern` |
+| 排程 / 背景任務設計 | `dotnet-quartz-jobs` |
+| Command / Query 分離與 Handler 拓撲 | `dotnet-cqrs-command`、`dotnet-cqrs-query` |
+| MediatR 橫切關注點拓撲 | `dotnet-pipeline-behaviors` |
+| 授權模型設計(JWT / 權限型) | `dotnet-jwt-authentication`、`dotnet-permission-authorization` |
+| 稽核 / 不可變審計軌跡設計 | `dotnet-audit-trail` |
+| 錯誤處理策略(Result<T>) | `dotnet-result-pattern` |
+| 可組合查詢邏輯設計 | `dotnet-specification-pattern` |
+
+> 📖 **設計紀律**:藍圖中引用到這些模式時,應在 `## 參考 Skill` 區塊標註,讓後端 PG 知道要載入哪些 skill。**不得排除任何項目**(EF Core / JWT / Outbox / Quartz 等企業級模式即使本次未使用,也需在藍圖中保留未來擴充的設計空間說明)。
+
 ## 運作流程
 
 ### 前置步驟:ADR 查詢 (ADR Pre-Check)

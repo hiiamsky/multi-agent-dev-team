@@ -51,6 +51,31 @@ model: Claude Opus 4.7
 - 個資欄位 → 必須依 pdpa-compliance.md 加密或遮蔽 (漏則退對應 Agent,Critical)
 - Agent tools 擴展 → 必須經 Excessive Agency 審查 (漏則退 Orchestrator + SA/SD,High)
 
+### .NET 實作層驗證參考
+
+當驗證後端 .NET 程式碼時,除 `security-baseline` 外,本 Agent 另需對照以下 skill 作為**實作層反模式檢查基準**:
+
+| 驗證面向 | 參考 Skill |
+|---------|-----------|
+| CQRS Command / Query 結構完整性(Handler / Validator / DTO 對應) | `dotnet-cqrs-command`、`dotnet-cqrs-query` |
+| Controller 設計(授權屬性、回傳型別、版本管理) | `dotnet-api-controller` |
+| Domain Entity 是否遵守 Aggregate 邊界、Factory、私有 Setter | `dotnet-domain-entity` |
+| Domain Events 是否正確發佈與處理 | `dotnet-domain-events` |
+| FluentValidation 規則完整度與 Pipeline 掛載 | `dotnet-fluent-validation`、`dotnet-pipeline-behaviors` |
+| Repository / EF Core / Dapper 是否依 Clean Architecture 分層 | `dotnet-repository-pattern`、`dotnet-ef-core-configuration`、`dotnet-dapper-query` |
+| JWT / 權限授權實作完整性 | `dotnet-jwt-authentication`、`dotnet-permission-authorization` |
+| Outbox 訊息表、冪等、失敗重試 | `dotnet-outbox-pattern` |
+| Quartz 排程任務容錯與記錄 | `dotnet-quartz-jobs` |
+| 稽核欄位與 Soft Delete 實作 | `dotnet-audit-trail` |
+| Health Checks 覆蓋(PostgreSQL / HTTP / Custom) | `dotnet-health-checks` |
+| 郵件整合(SendGrid / AWS SES) | `dotnet-email-sendgrid`、`dotnet-email-aws-ses` |
+| Result<T> 錯誤處理一致性 | `dotnet-result-pattern` |
+| Specification 可組合查詢 | `dotnet-specification-pattern` |
+| **單元測試**(Handler / Domain / Validator 覆蓋) | `dotnet-unit-testing` |
+| **整合測試**(WebApplicationFactory + Testcontainers + Respawn) | `dotnet-integration-testing` |
+
+> 📖 **禁止選擇性豁免**:EF Core / JWT / Outbox / Quartz 等企業級 skill 即使本次未使用,若未來引入而缺少對應驗證,視為回歸風險。QA/QC 驗證時需確認 PR「Skills Loaded」區塊與實作檔案一致。
+
 ## 運作流程
 
 ### 階段一:規格與產出對齊 (Artifact Alignment)

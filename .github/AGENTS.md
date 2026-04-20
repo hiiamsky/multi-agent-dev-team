@@ -240,7 +240,55 @@ project-root/
     │   │   └── SKILL.md
     │   ├── bdd-conventions/                 ← BDD Story/Scenario 格式、SC-XX 編號、API 推導規則
     │   │   └── SKILL.md
-    │   └── agent-handoff-contract/          ← Handoff Contract 模板與必填欄位定義
+    │   ├── agent-handoff-contract/          ← Handoff Contract 模板與必填欄位定義
+    │   │   └── SKILL.md
+    │   │
+    │   │   ────── .NET Clean Architecture Skills(來源:ronnythedev/dotnet-clean-architecture-skills)──────
+    │   ├── dotnet-clean-architecture/       ← 解決方案骨架、分層、DI 設定
+    │   │   └── SKILL.md
+    │   ├── dotnet-domain-entity/            ← Domain Entity、Value Object、Factory
+    │   │   └── SKILL.md
+    │   ├── dotnet-cqrs-command/             ← MediatR Command + Handler + Validator
+    │   │   └── SKILL.md
+    │   ├── dotnet-cqrs-query/               ← MediatR Query + Dapper + Response DTO
+    │   │   └── SKILL.md
+    │   ├── dotnet-api-controller/           ← REST Controller、授權、版本管理
+    │   │   └── SKILL.md
+    │   ├── dotnet-result-pattern/           ← Result<T> 錯誤處理模式
+    │   │   └── SKILL.md
+    │   ├── dotnet-fluent-validation/        ← FluentValidation 規則與 Pipeline 整合
+    │   │   └── SKILL.md
+    │   ├── dotnet-repository-pattern/       ← Repository 介面與 EF Core 實作
+    │   │   └── SKILL.md
+    │   ├── dotnet-ef-core-configuration/    ← EF Core Fluent API、關聯、索引
+    │   │   └── SKILL.md
+    │   ├── dotnet-dapper-query/             ← Dapper Multi-mapping、分頁、CTE
+    │   │   └── SKILL.md
+    │   ├── dotnet-specification-pattern/    ← Specification 可組合查詢邏輯
+    │   │   └── SKILL.md
+    │   ├── dotnet-domain-events/            ← Domain Events、Handler、Outbox 整合
+    │   │   └── SKILL.md
+    │   ├── dotnet-pipeline-behaviors/       ← MediatR Logging / Validation / Transaction 行為
+    │   │   └── SKILL.md
+    │   ├── dotnet-outbox-pattern/           ← Outbox 訊息表、背景處理、冪等性
+    │   │   └── SKILL.md
+    │   ├── dotnet-quartz-jobs/              ← Quartz.NET 排程任務、Cron 設定
+    │   │   └── SKILL.md
+    │   ├── dotnet-jwt-authentication/       ← JWT Bearer 認證、Refresh Token
+    │   │   └── SKILL.md
+    │   ├── dotnet-permission-authorization/ ← 權限型授權、Policy Provider
+    │   │   └── SKILL.md
+    │   ├── dotnet-audit-trail/              ← IAuditable、EF Interceptor、Soft Delete
+    │   │   └── SKILL.md
+    │   ├── dotnet-health-checks/            ← 依賴監控(PostgreSQL / HTTP / Custom)
+    │   │   └── SKILL.md
+    │   ├── dotnet-email-sendgrid/           ← SendGrid 郵件整合、模板
+    │   │   └── SKILL.md
+    │   ├── dotnet-email-aws-ses/            ← AWS SES 郵件整合、本地模板
+    │   │   └── SKILL.md
+    │   ├── dotnet-unit-testing/             ← xUnit + NSubstitute + FluentAssertions
+    │   │   └── SKILL.md
+    │   └── dotnet-integration-testing/      ← WebApplicationFactory + Testcontainers + Respawn
     │       └── SKILL.md
     └── ISSUE_TEMPLATE/
         └── feature.yml                      ← Issue 模板(含 5 個安全標籤)
@@ -294,6 +342,44 @@ QA/QC 或跨域檢視發現問題時,將 Review Critique 寫入 `docs/reviews/`,
 - **退回對象**:哪個 Agent 需修正
 - **溯源位置**:精確到檔案路徑與問題描述
 - 對應 Agent 修正後,更新原檔並重新提交驗證
+
+## .NET Clean Architecture Skill 目錄
+
+本團隊導入一套 22 項的 `.NET` 實作參考 skill(來源:`ronnythedev/dotnet-clean-architecture-skills`)作為後端 PG、SA/SD、DBA、QA/QC 的**實作層權威參考**。以下為使用規則:
+
+- **觸發原則**:當 Agent 遇到表格中的情境時,**必須**以 `read_file` 載入對應 skill 的 `SKILL.md`,再開始產出程式碼或審查。
+- **權威衝突**:若 skill 範例與 `security-baseline` 衝突,**以 `security-baseline` 為準**(安全永遠優先於樣板)。
+- **不得因「範例看起來簡單」而跳過 skill 載入**——skill 內含反模式警告與 Best Practices。
+- **所有項目一律保留**:EF Core、JWT、Outbox、Quartz、Audit Trail、Email、Health Checks 等企業級模式雖目前專案未使用,但保留作為未來擴充時的統一規範。
+
+### 情境 → Skill 對照表
+
+| 觸發情境 | 對應 Skill | 主要使用者 |
+|---------|-----------|-----------|
+| 建立新專案骨架 / 分層 DI 設定 | `dotnet-clean-architecture` | SA/SD、後端 PG |
+| 設計 Aggregate Root / Value Object / Factory | `dotnet-domain-entity` | 後端 PG |
+| 建立寫入端 Command + Handler + Validator | `dotnet-cqrs-command` | 後端 PG |
+| 建立讀取端 Query + Handler + DTO | `dotnet-cqrs-query` | 後端 PG |
+| 建立 REST Controller / 路由 / 版本管理 | `dotnet-api-controller` | 後端 PG |
+| 錯誤處理採用 Result<T> | `dotnet-result-pattern` | 後端 PG |
+| 撰寫 Request / Response 驗證規則 | `dotnet-fluent-validation` | 後端 PG |
+| 建立 Repository / EF Core 實作 | `dotnet-repository-pattern` | 後端 PG |
+| 設計 EF Core Fluent API、關聯與索引 | `dotnet-ef-core-configuration` | 後端 PG、DBA(跨域檢視) |
+| 撰寫高效能 Dapper 讀取查詢 | `dotnet-dapper-query` | 後端 PG |
+| 設計可組合的查詢邏輯 | `dotnet-specification-pattern` | 後端 PG |
+| 實作 Domain Events 與事件傳遞 | `dotnet-domain-events` | 後端 PG、SA/SD |
+| 實作 MediatR 橫切關注點(Logging / Transaction / Validation) | `dotnet-pipeline-behaviors` | 後端 PG |
+| 實作可靠訊息 Outbox 機制 | `dotnet-outbox-pattern` | 後端 PG |
+| 建立排程 / 背景任務 | `dotnet-quartz-jobs` | 後端 PG |
+| 實作 JWT Bearer 認證 + Refresh Token | `dotnet-jwt-authentication` | 後端 PG |
+| 實作權限型授權 / Policy Provider | `dotnet-permission-authorization` | 後端 PG、SA/SD |
+| 建立稽核欄位 / Soft Delete | `dotnet-audit-trail` | 後端 PG、DBA |
+| 建立依賴健康檢查 | `dotnet-health-checks` | 後端 PG |
+| 郵件整合(SendGrid / AWS SES) | `dotnet-email-sendgrid` / `dotnet-email-aws-ses` | 後端 PG |
+| 撰寫單元測試(xUnit + NSubstitute) | `dotnet-unit-testing` | 後端 PG、QA/QC |
+| 撰寫整合測試(WebApplicationFactory + Testcontainers) | `dotnet-integration-testing` | 後端 PG、QA/QC |
+
+> 📖 **使用紀律**:每次 PR 描述的「Skills Loaded」區塊需列出本次載入的 skill 清單,供 QA/QC 與人類審查者追蹤。
 
 ## 全域原則
 

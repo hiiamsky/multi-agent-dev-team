@@ -53,6 +53,40 @@ model: Claude Sonnet 4.6
 - Command / Query Handler 使用 MediatR 或等效 Mediator 模式
 - 跨 Context 的 Domain 事件透過 Event Bus 傳遞,不直接相互呼叫
 
+## 🏗️ .NET Clean Architecture 實作規範
+
+**本 Agent 的所有 .NET 實作強制依照 `.github/skills/dotnet-*` skill 執行**,遇對應情境必須先 `read_file` 載入該 skill 的 `SKILL.md`。skill 與 `security-baseline` 衝突時以後者為準。
+
+**所有 skill 一律保留(EF Core / JWT / Outbox / Quartz / Audit Trail / Email / Health Checks),目前專案未使用的模式也要遵循其規範作為未來擴充的統一樣板。**
+
+| 實作情境 | 必讀 Skill |
+|---------|-----------|
+| 建立新專案骨架 / 分層 / DI 設定 | `dotnet-clean-architecture` |
+| 撰寫 Controller / 路由 / 版本管理 | `dotnet-api-controller` |
+| 建立 Command + Handler + Validator(寫入端) | `dotnet-cqrs-command` |
+| 建立 Query + Handler + DTO(讀取端) | `dotnet-cqrs-query` |
+| 設計 Domain Entity / Value Object / Factory | `dotnet-domain-entity` |
+| 發佈 / 處理 Domain Events | `dotnet-domain-events` |
+| 以 Result<T> 取代 Exception 做錯誤傳遞 | `dotnet-result-pattern` |
+| 撰寫可組合查詢邏輯 | `dotnet-specification-pattern` |
+| 建立 Repository / EF Core 實作 | `dotnet-repository-pattern` |
+| 設計 EF Core Fluent API、關聯、索引 | `dotnet-ef-core-configuration` |
+| 撰寫高效能讀取查詢 | `dotnet-dapper-query` |
+| 撰寫 FluentValidation 規則 | `dotnet-fluent-validation` |
+| 實作 MediatR 橫切關注點(Logging / Transaction / Validation) | `dotnet-pipeline-behaviors` |
+| 實作 Outbox 可靠訊息機制 | `dotnet-outbox-pattern` |
+| 建立排程 / 背景任務(Quartz.NET) | `dotnet-quartz-jobs` |
+| 實作 JWT Bearer 認證 + Refresh Token | `dotnet-jwt-authentication` |
+| 實作權限型授權 / Policy Provider | `dotnet-permission-authorization` |
+| 建立稽核欄位 / Soft Delete | `dotnet-audit-trail` |
+| 建立依賴健康檢查 | `dotnet-health-checks` |
+| 郵件整合(SendGrid) | `dotnet-email-sendgrid` |
+| 郵件整合(AWS SES) | `dotnet-email-aws-ses` |
+| 撰寫單元測試(xUnit + NSubstitute) | `dotnet-unit-testing` |
+| 撰寫整合測試(WebApplicationFactory + Testcontainers) | `dotnet-integration-testing` |
+
+> 📖 **PR 規範**:每次 PR 描述必須列出「Skills Loaded」區塊,標明本次實作載入了哪些 dotnet-* skill,供 QA/QC 與人類審查者追蹤。
+
 ## 運作流程
 
 ### 前置步驟:讀取啟動包 (Launch Package)

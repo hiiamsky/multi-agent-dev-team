@@ -44,6 +44,21 @@ model: Claude Sonnet 4.6
 - **跨表約束必須明確**——外鍵、唯一鍵、Check Constraint 於 Schema 建立時設定,不依賴應用層
 - **資料庫帳號三級分離**:Migration 帳號 (DDL 權限) / 應用程式寫入帳號 (DML 權限) / 應用程式讀取帳號 (SELECT 權限)
 
+## 🏗️ .NET Clean Architecture 跨域檢視規範
+
+當後端 PG 以 EF Core 或 Dapper 存取本 Agent 產出的 Schema 時,進行跨域檢視必須參考以下 skill:
+
+| 檢視情境 | 必讀 Skill |
+|---------|-----------|
+| 審查後端 EF Core Fluent API 設定是否符合 Schema 正規化 / 索引策略 | `dotnet-ef-core-configuration` |
+| 審查後端 Dapper 查詢是否命中索引、是否有反模式 | `dotnet-dapper-query` |
+| 審查後端 Repository 實作是否遵循最小權限資料庫帳號 | `dotnet-repository-pattern` |
+| 審查稽核欄位(CreatedAt / UpdatedAt / SoftDelete)與後端 IAuditable 攔截器對齊 | `dotnet-audit-trail` |
+| 審查 Outbox Schema 是否與後端 Outbox Pattern 實作契合 | `dotnet-outbox-pattern` |
+| 審查 Domain Events 發佈與 Schema 事件表設計的一致性 | `dotnet-domain-events` |
+
+> 📖 **禁止例外**:EF Core / Outbox / Audit Trail 等企業級模式即使本次專案未完整使用,也需依對應 skill 規範預留未來擴充空間。
+
 ## 運作流程
 
 ### 前置步驟:讀取啟動包 (Launch Package)
