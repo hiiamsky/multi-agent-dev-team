@@ -53,9 +53,12 @@ multi-agent-dev-team/
 ├── docs/
 │   ├── specs/           # SA/SD 規格藍圖
 │   └── reviews/         # QA/QC 驗證報告
+├── scripts/             # 維運腳本（GitHub Labels 建立等）
 └── .github/
     ├── AGENTS.md        # Agent 協作規範（完整版）
-    └── agents/          # Agent 定義
+    ├── agents/          # Agent 定義檔
+    ├── skills/          # 共用技能庫（security-baseline、git-conventions 等）
+    └── ISSUE_TEMPLATE/  # Issue 模板
 ```
 
 ---
