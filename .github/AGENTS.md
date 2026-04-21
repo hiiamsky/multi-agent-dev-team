@@ -95,6 +95,7 @@ description: Multi-agent team coordination rules for enterprise software develop
 
 | 等級 | 判斷條件 | 執行者 |
 |------|----------|--------|
+| **L0 外部阻塞** | 完全或部分依賴人類或外部資源（實體設備、法律身份、外部系統帳號、金錢支出、實體訪談等，詳見 ADR-001 §Human-in-the-Loop 三層漏斗） | 建 issue、標 `cap:human` + `status:blocked`，觸發三重通知 |
 | **L1 輕量** | 純文件 / 設定變更、無跨域影響、無任何程式碼異動 | Orchestrator 直接處理 |
 | **L2 標準** | 涉及程式碼、API contract、DB schema 其中之一 | 分派給對應專家 Agent |
 | **L3 複雜** | 跨多個 agent 職責、需要並行開發 | worktree 並行,多 Agent 協作 |
@@ -130,6 +131,7 @@ description: Multi-agent team coordination rules for enterprise software develop
 | 規格已定、需建表/改表 | DBA |
 | 交付物需 API 驗證 | QA/QC |
 | 需進行全系統 UI 核心流程測試 | E2E 測試 |
+| 需進行 STRIDE-A 威脅建模分析或增量更新（含 /threat-model-analyst 直接呼叫） | threat-model-analyst skill |
 | 規格有爭議或矛盾 | SA/SD(重新設計) |
 
 **Worktree 並行規則**:
