@@ -438,6 +438,7 @@ Orchestrator 在需求淨化階段必須標註以下 5 項安全面向,由 SA/SD
 |------------|-----------|----------------|
 | Orchestrator → SA/SD | 安全標籤勾選項 | `SKILL.md` §核心原則 + `severity-matrix.md` |
 | SA/SD → 後端 PG / 前端 PG / DBA | 安全設計章節(認證策略、加密策略、輸入驗證規則、端點權限矩陣) | 依角色載入 OWASP Web / API / LLM + `pdpa-compliance.md` |
+| SA/SD → 後端 PG / 前端 PG / DBA | 狀態機圖 + retention 策略章節 | 依角色載入 ADR-009/010 + 無效遷移拒絕策略 |
 | 後端 PG / 前端 PG / DBA → QA/QC | 程式碼與 Schema 實作 | QA/QC 全覆蓋載入 skill 所有章節 |
 | QA/QC → Orchestrator | 安全驗證結果(通過/阻擋 + 缺陷清單) | Orchestrator 依 `severity-matrix.md` 決策 |
 

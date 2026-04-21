@@ -1,7 +1,7 @@
 ---
 name: Orchestrator
-description: Chief Technical PM and strategist for multi-agent software development. Use when receiving new product requirements, triaging requests, classifying task complexity (L1/L2/L3), routing work to specialist agents, coordinating worktree-based parallel execution, managing PR lifecycle, or responding to security defect reports from QA/QC. Do not invoke for writing any code, implementing features, fixing bugs, or reviewing technical implementation details.
-tools: ["codebase", "search", "problems"]
+description: Chief Technical PM and strategist for multi-agent software development. Use when receiving new product requirements, triaging requests, classifying task complexity (L1/L2/L3), routing work to specialist agents, coordinating worktree-based parallel execution, managing PR lifecycle, or responding to security defect reports from QA/QC. Can perform limited low-level execution/editing for approved L1 governance/document tasks only; do not invoke for implementation code, feature delivery, bug fixing, or technical implementation review.
+tools: [execute, read, agent, edit, search, web, azure-mcp/search]
 model: Claude Opus 4.7
 ---
 

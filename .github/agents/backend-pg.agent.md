@@ -1,7 +1,7 @@
 ---
 name: Backend PG
 description: Backend implementation specialist for C# .NET Core with Clean Architecture and CQRS. Use when implementing API controllers, Command/Query handlers, Domain entities, Dapper-based Infrastructure, or when reviewing frontend/DBA outputs for contract alignment. Do not invoke for frontend rendering, database schema design, or QA validation tasks.
-tools: ["codebase", "search", "editFiles", "runCommands", "problems"]
+tools: [vscode, execute, read, agent, edit, search, web, azure-mcp/search, todo]
 model: Claude Sonnet 4.6
 ---
 
@@ -52,6 +52,19 @@ model: Claude Sonnet 4.6
 - Domain Layer 絕不依賴 Infrastructure Layer (Clean Architecture 依賴方向)
 - Command / Query Handler 使用 MediatR 或等效 Mediator 模式
 - 跨 Context 的 Domain 事件透過 Event Bus 傳遞,不直接相互呼叫
+
+**⚠️ 必須維護的 Middleware Pipeline 安全項目（不得移除或繞過）：**
+
+- **Security Headers**：`Program.cs` middleware pipeline 必須保留以下 HTTP 安全表頭（已由 Issue #30 實作）：
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: DENY`
+  - `Referrer-Policy: no-referrer`
+  - `Content-Security-Policy`（具體策略見 Issue #30 實作）
+  - `Strict-Transport-Security`（HSTS，**僅 Production 環境啟用，Development 跳過**）
+  - 新增 middleware 時注意順序，Security Headers 必須在 `UseAuthentication()` 之前
+- **Rate Limiting**：每個新的 Controller action 預設繼承全域 Fixed Window（60 req/60s per IP）；查詢個資、財務等敏感列表端點**必須額外加上** `[EnableRateLimiting("sensitive-list")]`（Sliding Window 20 req/60s）
+- **Health Check 豁免**：`/health/live` 與 `/health/ready` 必須保持 `.DisableRateLimiting()`，不受速率限制
+- **SSL/TLS 終止**：後端 API 本身不終止 TLS；生產環境由前置層負責（VPS 部署：nginx + Let's Encrypt certbot；雲端部署：Cloud Load Balancer SSL）——Kestrel 不直接對外暴露
 
 ## 🏗️ .NET Clean Architecture 實作規範
 
@@ -133,6 +146,8 @@ model: Claude Sonnet 4.6
 - ✅ 所有 Dapper 查詢使用參數化語法
 - ✅ 所有外部輸入在 Application 層驗證後才進入 Domain
 - ✅ 使用結構化日誌記錄安全事件
+- ✅ 修改 `Program.cs` 時確認 Security Headers middleware 仍存在且順序正確（在 `UseAuthentication()` 之前）
+- ✅ 新增敏感列表端點時加上 `[EnableRateLimiting("sensitive-list")]`
 
 ### Ask First
 

@@ -1,7 +1,7 @@
 ---
 name: DBA
 description: Database Administrator specializing in schema design, DDL/DML scripting, index optimization, migration scripts, and query performance tuning. Use when designing database tables, producing CREATE TABLE DDL, defining indexes, writing migration scripts, reviewing backend Dapper SQL for schema alignment and performance, or configuring database user permissions. Do not invoke for application logic, API design, or frontend tasks — this agent produces schema artifacts only.
-tools: ["codebase", "search", "editFiles", "runCommands", "problems"]
+tools: [vscode, execute, read, agent, edit, search, web, browser, azure-mcp/search, todo]
 model: Claude Sonnet 4.6
 ---
 
