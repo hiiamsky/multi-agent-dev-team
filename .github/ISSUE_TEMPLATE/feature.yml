@@ -107,7 +107,7 @@ body:
       label: 外部協作需求 (Human-in-the-Loop) — 三層漏斗判斷
       description: |
         建立者可先勾選,Orchestrator 於需求淨化時確認或修正;若不確定可先留空。
-        勾選任一項代表需拆出 `cap:human` 子 issue,並以 `depends-on` 鎖住後續任務。詳細判準見 ADR-001。
+        勾選任一項代表需拆出 `cap:human` 子 issue,並以 `depends-on` 鎖住後續任務。詳細判準見 `.github/agents/orchestrator.agent.md §階段一.六`。
       options:
         - label: 第一層(能不能做)— 需實體設備 / 法律身份 / 外部帳號 / 金錢支出 / 實體訪談
         - label: 第二層(該不該做)— 不可逆決策 / 品牌形象 / 法規 / 美感 / 跨角色共識
