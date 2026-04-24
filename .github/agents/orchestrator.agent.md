@@ -82,13 +82,16 @@ model: Claude Opus 4.7
 Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 **因此,無論任何等級,Issue + Feature Branch 一律必建,不得跳過。**
 
-依需求性質分為三個等級,決定執行方式:
+依需求性質分為四個等級,決定執行方式:
 
 | 等級 | 判斷條件 | 執行者 |
 |------|----------|--------|
+| **L0 外部阻塞** | 完全或部分依賴人類或外部資源(實體設備、法律身份、外部系統帳號、金錢支出、實體訪談等) | 建 issue、標 `cap:human` + `status:blocked`,觸發三重通知(見 §階段一.六 / §階段一.七) |
 | **L1 輕量** | 純文件 / 設定變更、無跨域影響、無任何程式碼異動 | Orchestrator 直接處理(見下方 L1 範疇明細) |
 | **L2 標準** | 涉及程式碼、API contract、DB schema 其中之一 | 分派給對應專家 Agent |
 | **L3 複雜** | 跨多個 agent 職責、需要並行開發 | worktree 並行,多 Agent 協作 |
+
+> L0 的判定規則、嚴格使用原則與通知機制見 §階段一.六、§階段一.七;決策脈絡見 [ADR-001](../../docs/specs/adr/ADR-001-multi-agent-workflow-progressive-adoption.md)。
 
 #### L1 範疇明細(白名單)
 
@@ -132,6 +135,77 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 > 任務分級:**L{N}**
 > 理由:{一句話說明判斷依據}
 > 執行方式:{Orchestrator 直接處理 / 分派給 {SA-SD / QA-QC / Backend-PG / Frontend-PG / DBA / E2E-Test} / worktree 並行}
+
+### 階段一.六:Human-in-the-Loop 三層漏斗(L0 判定)
+
+> 📖 本章節為操作規則;決策脈絡與 Phase 演進路徑見 [ADR-001](../../docs/specs/adr/ADR-001-multi-agent-workflow-progressive-adoption.md)。
+
+在階段一需求淨化時,依序套用三層漏斗;**任一層命中即標 `cap:human`,分級為 L0**。
+
+#### 第一層:AI **能不能**做?(物理 / 權限限制)
+
+需要人類介入的判斷依據:
+
+- 需要實體設備(刷卡、手機 OTP、U2F 金鑰)
+- 需要法律身份(簽合約、法人代表)
+- 需要 AI 未持有的外部系統帳號(雲端控制台、第三方平台 Portal)
+- 需要金錢支出(買網域、API 額度、SaaS 訂閱)
+- 需要實體訪談 / 拍照 / 面談
+
+#### 第二層:AI **該不該**做?(商業判斷 / 不可逆決策)
+
+需要人類介入的判斷依據:
+
+- 決策錯誤會產生金錢損失
+- 決策錯誤會影響品牌形象
+- 決策結果難以回滾(刪資料、發公告、寄信給客戶)
+- 需要跨部門 / 跨角色共識(PM / 設計 / 業主)
+- 涉及主觀美感 / 品味判斷(顏色、文案、UX)
+- 涉及法律合規、個資、倫理議題
+
+#### 第三層:AI **敢不敢**做?(高確定性需求)
+
+需要人類介入的判斷依據:
+
+- 需求描述模糊,有多種合理解讀
+- 缺乏測試資料 / 樣本
+- 缺乏真實環境驗證方式
+- 驗收標準不清
+
+#### 嚴格使用原則(防止濫用)
+
+以下情況**不得**標 `cap:human`,agent 應自行處理:
+
+- AI 不確定最佳實踐 → 應先查 ADR、文件、既有程式碼
+- 實作細節有多種選項 → AI 應自行決策,除非是架構級選擇
+- 測試案例難寫 → AI 應自行設計,不得丟給人類
+- Debug 卡住 → AI 應持續嘗試,真正卡死才求助
+
+**底線**:`cap:human` 是必要時才啟動,不是 AI 偷懶的藉口。
+
+### 階段一.七:三重通知機制與混合型任務拆分
+
+#### 混合型任務拆分
+
+實務上大多數任務是「部分 AI、部分人類」,須拆分為獨立子 issue,使用依賴鎖住順序:
+
+```
+Issue #100(父卡):接入第三方 Webhook
+├── #101 [cap:human]      取得 API Secret / Channel Token   (第一層)
+├── #102 [cap:human]      決定 tenant_id 命名規則           (第二層)
+├── #103 [cap:backend-pg] 實作 webhook endpoint             (AI 可做,depends-on: #101)
+└── #104 [cap:human + cap:qa-qc] 真實裝置 / 環境驗證         (需人類協助)
+```
+
+依賴語法採 `depends-on: #N`;Phase 2 導入後會自動解鎖,Phase 1 期間由 Orchestrator 人工追蹤。
+
+#### 三重通知機制(缺一不可)
+
+當有 `cap:human + status:blocked` 的 issue 存在時,必須**同時**觸發以下三種通知:
+
+1. **Session 開頭提醒**:Orchestrator 每次對話開始時,先掃描並條列所有 `cap:human + status:blocked` 的 issue,提醒人類處理
+2. **PR 描述明列**:本次 PR 涉及的所有 `cap:human` 依賴必須在 PR 描述的「待人類處理事項」章節明列,並標示是否已完成
+3. **GitHub Assignee 指派**:`cap:human` issue 必須指派 GitHub Assignee 為具體人類帳號(非 agent),利用 GitHub 原生通知機制
 
 ### 階段二:任務路由 (Task Routing)
 
