@@ -93,9 +93,12 @@ Multi-agent 團隊採「漸進式導入」策略：先落地 GitHub Labels（含
 ### 三層判斷漏斗、嚴格使用原則、混合型任務處理、三重通知機制
 
 > 📖 操作細節（三層條目、嚴格使用原則、混合型任務拆分範例、三重通知步驟）見
-> `.github/agents/orchestrator.agent.md §階段一.六`、`§階段一.七`。
+> [`.github/agents/orchestrator.agent.md §階段一.六`](../../../.github/agents/orchestrator.agent.md#階段一六)、[`.github/agents/orchestrator.agent.md §階段一.七`](../../../.github/agents/orchestrator.agent.md#階段一七)。
 >
-> 本 ADR 僅保留決策理由:VeggieAlly 專案 Phase 1 即會遇到 LINE API Secret、Azure 訂閱、真實裝置驗證等外部阻塞,必須在 Phase 1 同步建立判斷漏斗與通知機制,避免 agent 對外部條件做假設而陷入死鎖;同時以嚴格三層漏斗防止 `cap:human` 被濫用成 AI 偷懶的藉口。
+> 本 ADR 僅保留決策理由：VeggieAlly 專案在 Phase 1 即會遇到 LINE API Secret、
+> Azure 訂閱、真實裝置驗證等外部阻塞，因此必須在 Phase 1 同步建立判斷漏斗與
+> 通知機制，避免 agent 對外部條件做假設而陷入死鎖；同時以嚴格三層漏斗防止
+> `cap:human` 被濫用成 AI 偷懶的藉口。
 
 ---
 
