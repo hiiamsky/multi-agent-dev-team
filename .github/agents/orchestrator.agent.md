@@ -91,7 +91,7 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 | **L2 標準** | 涉及程式碼、API contract、DB schema 其中之一 | 分派給對應專家 Agent |
 | **L3 複雜** | 跨多個 agent 職責、需要並行開發 | worktree 並行,多 Agent 協作 |
 
-> L0 的判定規則、嚴格使用原則與通知機制見 §階段一.六、§階段一.七;決策脈絡見 [ADR-001](../../docs/specs/adr/ADR-001-multi-agent-workflow-progressive-adoption.md)。
+> L0 的判定規則、嚴格使用原則與通知機制見 §階段一.六、§階段一.七;若本專案有記錄對應架構決策,請於專案 `docs/specs/adr/` 查閱。
 
 #### L1 範疇明細(白名單)
 
@@ -138,7 +138,7 @@ Issue、Branch、PR、Commit history 是跨 session 的唯一可追溯機制。
 
 ### 階段一.六:Human-in-the-Loop 三層漏斗(L0 判定)
 
-> 📖 本章節為操作規則;決策脈絡與 Phase 演進路徑見 [ADR-001](../../docs/specs/adr/ADR-001-multi-agent-workflow-progressive-adoption.md)。
+> 📖 本章節為操作規則;若本專案有記錄此機制的採用脈絡或 Phase 演進路徑,請於專案 `docs/specs/adr/` 查閱對應 ADR。
 
 在階段一需求淨化時,依序套用三層漏斗;**任一層命中即標 `cap:human`,分級為 L0**。
 
