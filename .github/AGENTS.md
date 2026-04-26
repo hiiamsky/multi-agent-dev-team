@@ -200,6 +200,24 @@ description: Multi-agent team coordination rules for enterprise software develop
 
 > 📖 **相關 Skill**：詳見 ADR-002-qa-qc-blueprint-review-gate.md 與 `.github/skills/bdd-conventions/SKILL.md`
 
+## 後端 PG 編碼規範
+
+### ⚠️ 授權標注強制規則（FallbackPolicy 安全防線）
+
+`Program.cs` 已設定 `FallbackPolicy = RequireAuthenticatedUser()`。
+**後端 PG 新增 Controller class 或 Action method 時，必須明確標注以下其中一個授權屬性，不得省略：**
+
+| 情境 | 使用屬性 | 說明 |
+|------|----------|------|
+| LIFF 端點（LINE 使用者操作） | `[LiffAuth]` | 驗證 LINE Bearer Token |
+| LINE Webhook 端點 | `[TypeFilter(typeof(LineSignatureAuthFilter))]` | 驗證 LINE Channel Secret 簽名 |
+| 明確公開端點（需說明理由） | `[AllowAnonymous]` | 需在 PR 描述中說明為何公開 |
+| 使用 ASP.NET Core 內建 JWT | `[Authorize]` | 標準授權管道 |
+
+**違反後果**：未標注的 endpoint 在所有環境一律返回 401，上線即故障。
+
+---
+
 ## 平行施工規則
 
 SA/SD 藍圖交付後,前端 PG、後端 PG、DBA 三者**同時啟動**,互不阻塞:
