@@ -218,7 +218,42 @@ Issue #100(父卡):接入第三方 Webhook
    - 若需求有勾選安全標籤,藍圖須包含「安全設計」章節
    - 若有新架構決策,必須建立對應 ADR 文件於 `docs/specs/adr/`
 
-5. **實作 agent 依賴判斷規則** (SA/SD 藍圖完成後執行):
+### 階段二.五:QA/QC 藍圖規格審查 (Blueprint Spec Review Gate) ⭐ 新增
+
+> ⚠️ **此階段為新增,詳見 ADR-002**
+
+**SA/SD 完成藍圖 commit 到 feature branch 後，**必須**觸發 @QA-QC 執行藍圖規格審查,確保藍圖品質符合標準後才允許並行施工。**
+
+1. **觸發審查**:
+   - SA/SD commit 藍圖到 feature branch 後,Orchestrator 立即呼叫 @QA-QC
+   - 提供 feature branch 連結、藍圖檔案位置
+   - 提醒 QA/QC 檢查清單(BDD、API Contract、Schema、安全設計、Handoff Contract)
+   - Issue label 設為 `status:review`
+
+2. **等待審查**:
+   - **禁止開發層 Agent 在審查未通過時開工**
+   - 若發現前端 / 後端 / DBA 已開始並行施工,立即暫停並強制回退
+
+3. **審查結果處理**:
+   - **通過** → QA/QC 標記「✅ 藍圖審查通過,可進行並行施工」,Orchestrator 進行步驟 5
+   - **退回** → QA/QC 產出 Review Critique,SA/SD 在**同一 feature branch**修正後重新提交審查
+
+4. **迴圈流程** (如需要):
+   ```
+   SA/SD 修正藍圖
+     ↓
+   commit 到同一 feature branch
+     ↓
+   Orchestrator 再次觸發 @QA/QC
+     ↓
+   QA/QC 重新審查
+     ↓
+   通過 → 進行並行施工
+   ```
+
+### 階段二.六:並行施工分派與 Worktree 管理
+
+5. **實作 agent 依賴判斷規則** (QA/QC 藍圖審查通過後執行):
    - **有新 DB schema**:
      ```
      git worktree add ../worktree-{issue-no}-db  feature/{issue-no}-db
