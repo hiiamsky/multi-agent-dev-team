@@ -64,6 +64,11 @@ model: Claude Sonnet 4.6
   - 新增 middleware 時注意順序，Security Headers 必須在 `UseAuthentication()` 之前
 - **Rate Limiting**：每個新的 Controller action 預設繼承全域 Fixed Window（60 req/60s per IP）；查詢個資、財務等敏感列表端點**必須額外加上** `[EnableRateLimiting("sensitive-list")]`（Sliding Window 20 req/60s）
 - **Health Check 豁免**：`/health/live` 與 `/health/ready` 必須保持 `.DisableRateLimiting()`，不受速率限制
+- **FallbackPolicy 強制授權標注（⚠️ 新增 Controller / Action 必讀）**：`Program.cs` 已設定 `FallbackPolicy = RequireAuthenticatedUser()`，任何未標注授權屬性的 endpoint 在所有環境一律返回 401。新增 Controller class 或 Action method 時，**必須**明確標注以下其中一個，不得省略：
+  - `[LiffAuth]`：LIFF 端點，驗證 LINE Bearer Token
+  - `[TypeFilter(typeof(LineSignatureAuthFilter))]`：LINE Webhook 端點，驗證 Channel Secret 簽名
+  - `[AllowAnonymous]`：明確聲明公開端點，**PR 描述中必須說明公開理由**
+  - `[Authorize]`：使用 ASP.NET Core 內建授權管道
 - **SSL/TLS 終止**：後端 API 本身不終止 TLS；生產環境由前置層負責（VPS 部署：nginx + Let's Encrypt certbot；雲端部署：Cloud Load Balancer SSL）——Kestrel 不直接對外暴露
 
 ## 🏗️ .NET Clean Architecture 實作規範
