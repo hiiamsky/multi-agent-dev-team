@@ -39,9 +39,13 @@ services:
         echo '=== Running DB migrations ===' &&
         psql -h postgres -U veggie -d veggieally -f /migrations/001_create_published_menus.sql &&
         psql -h postgres -U veggie -d veggieally -f /migrations/002_ensure_published_menus_unique_constraint.sql &&
-        echo '=== Migrations completed ==='
+        echo '=== Migrations completed ===' &&
+        echo '=== Running E2E seed data ===' &&
+        psql -h postgres -U veggie -d veggieally -f /seeds/001_e2e_test_seed.sql &&
+        echo '=== Seed data applied ==='
     volumes:
       - ./db/migrations:/migrations:ro
+      - ./db/seeds:/seeds:ro
     restart: "no"
     networks:
       - default
