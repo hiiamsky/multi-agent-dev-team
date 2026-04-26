@@ -207,14 +207,16 @@ description: Multi-agent team coordination rules for enterprise software develop
 `Program.cs` 已設定 `FallbackPolicy = RequireAuthenticatedUser()`。
 **後端 PG 新增 Controller class 或 Action method 時，必須明確標注以下其中一個授權屬性，不得省略：**
 
-| 情境 | 使用屬性 | 說明 |
-|------|----------|------|
-| LIFF 端點（LINE 使用者操作） | `[LiffAuth]` | 驗證 LINE Bearer Token |
-| LINE Webhook 端點 | `[TypeFilter(typeof(LineSignatureAuthFilter))]` | 驗證 LINE Channel Secret 簽名 |
-| 明確公開端點（需說明理由） | `[AllowAnonymous]` | 需在 PR 描述中說明為何公開 |
-| 使用 ASP.NET Core 內建 JWT | `[Authorize]` | 標準授權管道 |
+| 情境 | class 層標注 | method 層標注 | 說明 |
+|------|-------------|--------------|------|
+| LIFF 端點（LINE 使用者操作） | `[AllowAnonymous]` | `[LiffAuth]` | class 讓 FallbackPolicy 跳過；method 執行 LINE Bearer Token 驗證 |
+| LINE Webhook 端點 | `[AllowAnonymous]` | `[TypeFilter(typeof(LineSignatureAuthFilter))]` | class 讓 FallbackPolicy 跳過；method 執行 Channel Secret 簽名驗證 |
+| 使用 ASP.NET Core 內建 JWT | `[Authorize]` | 可省略（繼承 class） | 使用 ASP.NET Core 標準授權管道，FallbackPolicy 也可保護 |
+| 明確整個 Controller 公開（需說明理由） | `[AllowAnonymous]` | — | PR 描述中必須說明公開理由 |
 
-**違反後果**：未標注的 endpoint 在所有環境一律返回 401，上線即故障。
+> ⚠️ **LIFF / Webhook Controller 的關鍵陷阱**：`[LiffAuth]` 是 ActionFilter，在 FallbackPolicy 之後執行。若 class 層只加 `[LiffAuth]` 而未加 `[AllowAnonymous]`，FallbackPolicy 會在 ActionFilter 執行前就返回 401。**class 層必須有 `[AllowAnonymous]`，才能讓 custom filter 接管驗證。**
+
+**違反後果**：未依上表標注的 endpoint 在所有環境一律返回 401，上線即故障。
 
 ---
 
