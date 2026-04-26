@@ -248,11 +248,10 @@ export interface PublishedMenuItemRow {
  * JSON 命名策略：snake_case_lower（對應後端 JsonNamingPolicy.SnakeCaseLower）
  * TTL：86400 秒（24 小時）
  *
- * ValidationStatus 序列化確認：
- *   後端使用 [JsonConverter(typeof(JsonStringEnumConverter))] + .NET 10 JsonOptions
- *   中 PropertyNamingPolicy = SnakeCaseLower，JsonStringEnumConverter 預設構造器
- *   在 .NET 10 會回退至 options.PropertyNamingPolicy，因此：
- *     ValidationStatus.Ok → "ok"（snake_case_lower）
+ * ValidationStatus 欄位說明：
+ *   本 helper 直接寫入測試所需的字串值；若後端 enum 序列化規則有變更，
+ *   請以實際後端 Redis/JSON 輸出為準同步調整，避免在此註解中推論
+ *   JsonStringEnumConverter 的命名行為。
  *
  * 品項 ID 使用固定值（以 "e2efeed" 前綴辨識為 publish-flow 專用測試資料）：
  *   DRAFT_ITEM_1_ID = "e2efeed000000000000000000000201"（青菜，5 斤）
@@ -294,7 +293,7 @@ export async function seedDraftToRedis(
    *   C# Unit                → unit
    *   C# HistoricalAvgPrice  → historical_avg_price
    *   C# Validation          → validation
-   *     C# Status (enum Ok)  → status: "ok"
+   *     C# Status (enum Ok)  → status: "Ok"
    *     C# Message           → message: null
    */
   const draftSession = {
@@ -312,7 +311,7 @@ export async function seedDraftToRedis(
         unit:                 '斤',
         historical_avg_price: null,
         validation: {
-          status:  'ok',
+          status:  'Ok',
           message: null,
         },
       },
@@ -326,7 +325,7 @@ export async function seedDraftToRedis(
         unit:                 '顆',
         historical_avg_price: null,
         validation: {
-          status:  'ok',
+          status:  'Ok',
           message: null,
         },
       },
@@ -399,8 +398,10 @@ export async function clearPublishedMenusForTenant(tenantId: string): Promise<vo
         }
       }
     } while (cursor !== '0');
-  } catch {
-    // Redis 清除失敗時靜默略過，不應阻斷測試（DB 清除已完成）
+  } catch (err) {
+    const message = `Failed to clear published menu Redis cache for tenant "${tenantId}"`;
+    console.error(message, err);
+    throw err instanceof Error ? new Error(`${message}: ${err.message}`) : new Error(message);
   }
 }
 
@@ -441,3 +442,22 @@ export async function getPublishedItemsByMenuId(
   return result.rows;
 }
 
+/**
+ * 直接對 published_menus 做 COUNT(*)，回傳指定租戶與日期的記錄筆數。
+ * 供 SC-39-02-02 驗證重複發布不會插入多筆記錄使用。
+ *
+ * @param tenantId  租戶 ID
+ * @param date      日期字串，格式 yyyy-MM-dd
+ * @returns COUNT 整數
+ */
+export async function countPublishedMenusForTenantAndDate(
+  tenantId: string,
+  date: string,
+): Promise<number> {
+  const result = await getPool().query<{ count: string }>(
+    `SELECT COUNT(*) AS count FROM published_menus WHERE tenant_id = $1 AND date = $2`,
+    [tenantId, date],
+  );
+  if (result.rows.length === 0) return 0;
+  return Number(result.rows[0].count);
+}

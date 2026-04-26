@@ -44,6 +44,7 @@ import {
   seedDraftToRedis,
   getPublishedMenuByTenantAndDate,
   getPublishedItemsByMenuId,
+  countPublishedMenusForTenantAndDate,
   closeDatabasePool,
   todayTaiwan,
 } from '../helpers/db';
@@ -242,23 +243,19 @@ test('[SC-39-02-02] 重複發布同日菜單，回 409 且 DB 記錄不重複插
   // 注意：P4-001 藍圖描述為 "MENU_ALREADY_PUBLISHED"，實際後端回傳 "ALREADY_PUBLISHED"。
   // 本測試依實際後端行為斷言。詳見文末 E2E Critique。
   const errorBody = await secondResponse.json() as { error?: { code?: string } };
-  if (errorBody.error?.code) {
-    expect(errorBody.error.code).toBe('ALREADY_PUBLISHED');
-  }
+  expect(errorBody.error?.code, '重複發布 409 回應應包含 error.code').toBeDefined();
+  expect(errorBody.error?.code).toBe('ALREADY_PUBLISHED');
 
   // ── DB 驗證：published_menus 中仍只有一筆今日記錄 ──────────────────────────
   const menuRow = await getPublishedMenuByTenantAndDate(TEST_TENANT_ID, today);
   expect(menuRow, 'published_menus 應存在今日記錄（第一次發布寫入）').not.toBeNull();
 
-  // 直接查詢確認只有 1 筆（不依賴 getPublishedMenuByTenantAndDate 的 LIMIT 語義）
-  const countResult = await (async () => {
-    const { Pool } = await import('pg');
-    // 使用現有 pool 間接驗證（透過 getPublishedItemsByMenuId 的品項數量）
-    // 直接 count 查詢：透過 menuRow!.id 對應的 published_menu_items 數量 > 0 確認唯一性
-    const items = await getPublishedItemsByMenuId(menuRow!.id);
-    return items.length;
-  })();
-  expect(countResult, '第一次發布的品項應已存在 DB').toBeGreaterThanOrEqual(1);
+  // 直接 COUNT published_menus，確認不重複插入（斷言恰好 1 筆）
+  const menuCount = await countPublishedMenusForTenantAndDate(TEST_TENANT_ID, today);
+  expect(
+    menuCount,
+    '重複發布後 published_menus 仍應只有一筆今日記錄',
+  ).toBe(1);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

@@ -26,46 +26,48 @@ INSERT INTO published_menus (id, tenant_id, published_by, date, published_at)
 VALUES (
     'beefcafe000000000000000000000001',  -- GUID N-format
     'e2e-seed-tenant',
-    'e2e-seed-bot',
+    'Ue2e000000000000000000000000seed',
     '2020-01-01',
     '2020-01-01T00:00:00+00:00'
 );
 
--- ─── Step 3: 插入靜態 seed 品項 ──────────────────────────────────────────
--- Item 1: 測試蔬菜 A  (id: beefcafe-0000-0000-0000-000000000101)
--- Item 2: 測試蔬菜 B  (id: beefcafe-0000-0000-0000-000000000102)
+-- ─── Step 3: 插入靜態 seed 品項 ──────────────────────────────────────────────
+-- Item 1: Seed 測試白菜  (id: beefcafe-0000-0000-0000-000000000101)
+-- Item 2: Seed 測試番茄  (id: beefcafe-0000-0000-0000-000000000102)
 --
 -- 約束確認：
---   chk_remaining_qty  : remaining_qty >= 0  ✓ (100, 50)
---   chk_original_qty   : original_qty >= 0   ✓ (100, 50)
+--   chk_remaining_qty  : remaining_qty >= 0  ✓ (20, 3)
+--   chk_original_qty   : original_qty >= 0   ✓ (20, 3)
 --   chk_prices         : buy_price >= 0
 --                        AND sell_price >= 0  ✓
 
 INSERT INTO published_menu_items
     (id, menu_id, tenant_id, name, is_new, buy_price, sell_price,
-     original_qty, remaining_qty, unit)
+     original_qty, remaining_qty, unit, historical_avg_price)
 VALUES
     (
         'beefcafe000000000000000000000101',  -- GUID N-format
         'beefcafe000000000000000000000001',
         'e2e-seed-tenant',
-        '測試蔬菜 A',
+        'Seed 測試白菜',
         FALSE,
-        10.00,
-        15.00,
-        100,   -- original_qty
-        100,   -- remaining_qty
-        '份'
+        80.00,
+        120.00,
+        20,    -- original_qty
+        20,    -- remaining_qty
+        '斤',
+        85.00  -- historical_avg_price
     ),
     (
         'beefcafe000000000000000000000102',  -- GUID N-format
         'beefcafe000000000000000000000001',
         'e2e-seed-tenant',
-        '測試蔬菜 B',
-        FALSE,
-        20.00,
-        30.00,
-        50,    -- original_qty
-        50,    -- remaining_qty
-        '份'
+        'Seed 測試番茄',
+        TRUE,
+        60.00,
+        90.00,
+        3,     -- original_qty
+        3,     -- remaining_qty
+        '盒',
+        NULL   -- historical_avg_price
     );
