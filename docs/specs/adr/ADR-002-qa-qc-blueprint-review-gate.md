@@ -1,6 +1,6 @@
 # ADR-002: QA/QC 藍圖規格審查閘門
 
-**狀態**: 已提案  
+**狀態**: 已接受  
 **決策日期**: 2026-04-26  
 **決策者**: Orchestrator  
 **影響**: SA/SD、QA/QC、Orchestrator、所有開發層 Agent  
