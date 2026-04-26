@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VeggieAlly.Application.Common.Interfaces;
@@ -12,6 +13,7 @@ namespace VeggieAlly.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous] // 實際驗證由 [TypeFilter(typeof(LineSignatureAuthFilter))] 負責；FallbackPolicy 不介入此 Controller
 public sealed class WebhookController : ControllerBase
 {
     private readonly IMediator _mediator;

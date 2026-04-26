@@ -64,6 +64,16 @@ model: Claude Sonnet 4.6
   - 新增 middleware 時注意順序，Security Headers 必須在 `UseAuthentication()` 之前
 - **Rate Limiting**：每個新的 Controller action 預設繼承全域 Fixed Window（60 req/60s per IP）；查詢個資、財務等敏感列表端點**必須額外加上** `[EnableRateLimiting("sensitive-list")]`（Sliding Window 20 req/60s）
 - **Health Check 豁免**：`/health/live` 與 `/health/ready` 必須保持 `.DisableRateLimiting()`，不受速率限制
+- **FallbackPolicy 強制授權標注（⚠️ 新增 Controller / Action 必讀）**：`Program.cs` 已設定 `FallbackPolicy = RequireAuthenticatedUser()`，任何未依規標注的 endpoint 在所有環境一律返回 401。**`[LiffAuth]` 是 ActionFilter，在 FallbackPolicy 之後執行**，因此 class 層必須搭配 `[AllowAnonymous]` 讓 FallbackPolicy 跳過，再由 ActionFilter 接管驗證：
+
+  | 情境 | class 層 | method/action 層 |
+  |------|----------|-----------------|
+  | LIFF Controller | `[AllowAnonymous]` | `[LiffAuth]` on each action |
+  | Webhook Controller | `[AllowAnonymous]` | `[TypeFilter(typeof(LineSignatureAuthFilter))]` on each action |
+  | JWT 標準授權（**僅限已完成 JWT Bearer 設定後**） | `[Authorize]` | 可省略（繼承） |
+  | 整個 Controller 公開 | `[AllowAnonymous]` | — （需在 PR 說明理由）|
+
+  > 註：只有在 `Program.cs` 已註冊 JWT Bearer authentication handler，並將其設為預設驗證方案或在 `[Authorize(AuthenticationSchemes = ...)]` 明確指定時，`[Authorize]` 才能用於 JWT 驗證。若目前僅註冊 `Null` authentication scheme，則 `[Authorize]` 會一律返回 401；此時請將 JWT 視為未啟用的未來擴充模式，而非現行可直接套用的做法。
 - **SSL/TLS 終止**：後端 API 本身不終止 TLS；生產環境由前置層負責（VPS 部署：nginx + Let's Encrypt certbot；雲端部署：Cloud Load Balancer SSL）——Kestrel 不直接對外暴露
 
 ## 🏗️ .NET Clean Architecture 實作規範

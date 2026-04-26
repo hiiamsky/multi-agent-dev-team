@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VeggieAlly.Application.Menu.GetToday;
@@ -10,6 +11,7 @@ namespace VeggieAlly.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/menu")]
+[AllowAnonymous] // 實際驗證由 [LiffAuth] ActionFilter 負責；FallbackPolicy 不介入此 Controller
 public sealed class MenuController : ControllerBase
 {
     private readonly IMediator _mediator;

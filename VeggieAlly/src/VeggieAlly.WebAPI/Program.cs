@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using VeggieAlly.Application;
 using VeggieAlly.Infrastructure;
 using VeggieAlly.WebAPI.Configuration;
@@ -19,6 +21,22 @@ builder.Services.AddScoped<LineSignatureAuthFilter>();
 
 // ── ASP.NET Core ──
 builder.Services.AddControllers();
+
+// ── 認證 / 授權（Option A：NullHandler + FallbackPolicy）──
+// NullAuthenticationHandler：不實際驗證任何身份，僅讓 UseAuthentication() middleware 正常運行。
+// 現有 Controller 標記 [AllowAnonymous]，實際驗證由 LiffAuthFilter / LineSignatureAuthFilter 負責。
+// 未來新增的 Controller 若未標記 [AllowAnonymous]，FallbackPolicy 將攔截並返回 401。
+const string NullScheme = "Null";
+builder.Services
+    .AddAuthentication(NullScheme)
+    .AddScheme<AuthenticationSchemeOptions, NullAuthenticationHandler>(NullScheme, _ => { });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 // ── OpenAPI/Swagger 設定 ──
 builder.Services.AddEndpointsApiExplorer();
@@ -51,6 +69,8 @@ else
     app.UseHttpsRedirection();
 }
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
