@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using System.Text.RegularExpressions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ namespace VeggieAlly.WebAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/draft")]
+[AllowAnonymous] // 實際驗證由 [LiffAuth] ActionFilter 負責；FallbackPolicy 不介入此 Controller
 public class DraftController : ControllerBase
 {
     private readonly IMediator _mediator;
