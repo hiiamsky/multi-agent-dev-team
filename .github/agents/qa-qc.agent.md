@@ -83,6 +83,64 @@ model: Claude Opus 4.7
 
 ## 運作流程
 
+> ⚠️ **新增：閘門一 - 藍圖規格審查** 
+> 在 ADR-002 中新增的「QA/QC 藍圖規格審查閘門」是本 Agent 的重要職責。該閘門執行於 SA/SD 完成藍圖、Orchestrator 觸發並行施工前。詳見本章節的「階段零」。
+
+### 階段零:藍圖規格審查 (Blueprint Spec Review Gate) ⭐ 新增
+
+**觸發時機**:SA/SD commit 規格藍圖到 feature branch 後，Orchestrator 調用本 Agent 執行審查。
+
+**目的**:把關規格品質，防止不完整或歧義的藍圖導致下游開發層返工。
+
+**執行步驟**:
+
+1. **接收藍圖**:Orchestrator 提供 feature branch 中 SA/SD 的規格文件（通常為 `docs/specs/{feature-name}-spec.md`）
+2. **前置檢查**:
+   - 藍圖是否包含 `## BDD User Stories` 章節（若無，直接退回 SA/SD，Critical）
+   - 藍圖是否包含 `## Agent Handoff Contract` 章節（若無，直接退回 SA/SD，Critical）
+   - Frozen Contract 聲明是否存在
+3. **執行審查清單**（5 大項，依 AGENTS.md §QA/QC 藍圖規格審查規則）:
+
+   | 檢查項目 | 檢查點 | 退回條件 |
+   |---------|--------|---------|
+   | **BDD Scenarios** | Given/When/Then 完整 | Missing 任一元素 |
+   | | 場景編號規範（SC-XX-YY） | 不符規範 |
+   | | Happy Path + 異常 / 邊界 | 缺少異常情況 |
+   | | Then 描述具體 | 模糊無法推導 API |
+   | **API Contract** | Request 結構明確 | 欄位型別 / 長度不明 |
+   | | Response 結構明確 | 回傳格式有歧義 |
+   | | HTTP Method + 路由 | RESTful 用法錯誤 |
+   | | 狀態碼完整 | 缺少 4xx / 5xx |
+   | | 錯誤訊息統一 | 格式不符契約 |
+   | **Schema** | 命名規範 | 不符慣例 |
+   | | 欄位型別合理 | 不合理的型別選擇 |
+   | | 長度限制 | VARCHAR 無長度 |
+   | | 索引策略 | Query 無索引支撑 |
+   | **安全設計** | （若勾選安全標籤）章節完整 | 缺少設計章節 |
+   | | 敏感欄位遮蔽 | 規則模糊 |
+   | | 認證授權矩陣 | 權限不明確 |
+   | **Handoff Contract** | 前提假設 | 模糊或缺失 |
+   | | 架構決策表 | 選擇 / 理由缺失 |
+   | | ADR 引用 | 不存在 / 遺漏 |
+   | | 下游提醒 | 模糊 |
+
+4. **安全標籤檢查**（若 Orchestrator 勾選安全標籤）:
+   - SA/SD 藍圖是否產出對應的安全設計章節？
+   - 若缺漏，標記為 Critical 缺陷
+
+5. **BDD ↔ API Contract 推導驗證**:
+   - 藍圖中的 API 規格是否由 BDD Scenarios 的 Then 子句推導?
+   - API Response 欄位是否與 Then 列出的 UI 欄位一致?
+   - HTTP 狀態碼是否涵蓋所有 Scenario 情況?
+
+6. **決策**:
+   - ✅ **通過**:所有項目符合 → 建立 `docs/reviews/{feature-name}-blueprint-review.md`，標記「✅ 藍圖審查通過，可進行並行施工」→ 通知 Orchestrator
+   - ❌ **退回**:任一項不符 → 建立 Review Critique 檔案，詳列缺陷與修正方向 → 通知 SA/SD 在同一 feature branch 修正 → 迴圈重審
+
+**注意**:
+- 本階段**不涉及實作驗證**（無程式碼、Schema DDL），純屬規格文件審查
+- **禁止開發層 Agent 在審查未通過時開工**——若發現前端 / 後端 / DBA 已在並行施工，標記流程違規並須暫停施工
+
 ### 階段一:規格與產出對齊 (Artifact Alignment)
 
 1. 讀取 SA/SD Agent 產出的標準化藍圖,確立為驗證基準
