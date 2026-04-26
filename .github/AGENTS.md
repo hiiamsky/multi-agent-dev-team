@@ -211,7 +211,7 @@ description: Multi-agent team coordination rules for enterprise software develop
 |------|-------------|--------------|------|
 | LIFF 端點（LINE 使用者操作） | `[AllowAnonymous]` | `[LiffAuth]` | class 讓 FallbackPolicy 跳過；method 執行 LINE Bearer Token 驗證 |
 | LINE Webhook 端點 | `[AllowAnonymous]` | `[TypeFilter(typeof(LineSignatureAuthFilter))]` | class 讓 FallbackPolicy 跳過；method 執行 Channel Secret 簽名驗證 |
-| 使用 ASP.NET Core 內建 JWT | `[Authorize]` | 可省略（繼承 class） | 使用 ASP.NET Core 標準授權管道，FallbackPolicy 也可保護 |
+| 使用 ASP.NET Core 內建 JWT（僅限 `Program.cs` 已註冊 JWT Bearer） | `[Authorize]` 或 `[Authorize(AuthenticationSchemes = "Bearer")]` | 可省略（繼承 class） | **前提是已註冊 Bearer authentication handler**；否則 `[Authorize]` 只會走目前預設/已註冊 scheme 而返回 401，不能單靠標注屬性啟用 JWT 驗證 |
 | 明確整個 Controller 公開（需說明理由） | `[AllowAnonymous]` | — | PR 描述中必須說明公開理由 |
 
 > ⚠️ **LIFF / Webhook Controller 的關鍵陷阱**：`[LiffAuth]` 是 ActionFilter，在 FallbackPolicy 之後執行。若 class 層只加 `[LiffAuth]` 而未加 `[AllowAnonymous]`，FallbackPolicy 會在 ActionFilter 執行前就返回 401。**class 層必須有 `[AllowAnonymous]`，才能讓 custom filter 接管驗證。**

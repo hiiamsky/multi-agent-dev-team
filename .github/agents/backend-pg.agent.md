@@ -70,8 +70,10 @@ model: Claude Sonnet 4.6
   |------|----------|-----------------|
   | LIFF Controller | `[AllowAnonymous]` | `[LiffAuth]` on each action |
   | Webhook Controller | `[AllowAnonymous]` | `[TypeFilter(typeof(LineSignatureAuthFilter))]` on each action |
-  | JWT 標準授權 | `[Authorize]` | 可省略（繼承） |
+  | JWT 標準授權（**僅限已完成 JWT Bearer 設定後**） | `[Authorize]` | 可省略（繼承） |
   | 整個 Controller 公開 | `[AllowAnonymous]` | — （需在 PR 說明理由）|
+
+  > 註：只有在 `Program.cs` 已註冊 JWT Bearer authentication handler，並將其設為預設驗證方案或在 `[Authorize(AuthenticationSchemes = ...)]` 明確指定時，`[Authorize]` 才能用於 JWT 驗證。若目前僅註冊 `Null` authentication scheme，則 `[Authorize]` 會一律返回 401；此時請將 JWT 視為未啟用的未來擴充模式，而非現行可直接套用的做法。
 - **SSL/TLS 終止**：後端 API 本身不終止 TLS；生產環境由前置層負責（VPS 部署：nginx + Let's Encrypt certbot；雲端部署：Cloud Load Balancer SSL）——Kestrel 不直接對外暴露
 
 ## 🏗️ .NET Clean Architecture 實作規範
