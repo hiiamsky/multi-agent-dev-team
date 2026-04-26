@@ -42,11 +42,6 @@ description: Multi-agent team coordination rules for enterprise software develop
 │              │  ── 產出標準化藍圖(API Contract 從 BDD Then 推導 + Schema + 時序)
 └──────┬──────┘
        │
-       ▼
-┌─────────────┐
-│   QA/QC      │  🚦 閘門一:藍圖規格審查 (Blueprint Spec Review)
-│              │  ── ❌ 退件 → 退回 SA/SD 修正，禁止實作 Agent 開工
-└──────┬──────┘  ── ✅ 通過 → 回報 Orchestrator，允許並行施工
        ├──────────────────────────┐
        ▼                          ▼
 ┌──────────────────┐   ┌──────────────────┐
@@ -74,7 +69,7 @@ description: Multi-agent team coordination rules for enterprise software develop
                    │
                    ▼
             ┌──────────────┐
-            |   QA/QC      |  🚦 閘門二:API 層/單元整合驗證(BDD Scenario Coverage 100%)
+            |   QA/QC      |  階段四:API 層/單元整合驗證(BDD Scenario Coverage 100%)
             |   E2E 測試   |  階段五:真實使用者 UI 端到端驗證與批判迴圈
             └──────┬───────┘
                    |
@@ -147,58 +142,8 @@ description: Multi-agent team coordination rules for enterprise software develop
 ### 禁止路由
 
 - Orchestrator **不得**直接指派實作任務給前端/後端/DBA/E2E 測試(必須先經 SA/SD 產出藍圖)
-- 開發層 Agent (前端 PG / 後端 PG / DBA) **不得**在 QA/QC 藍圖審查通過前開工
 - 開發層 Agent **不得**繞過 QA/QC 直接宣告完成
 - QA/QC **不得**繞過 Orchestrator 直接接受人類需求
-
-## 🚦 QA/QC 藍圖規格審查規則 (Blueprint Spec Review Gate)
-
-**時機**:SA/SD 完成規格藍圖 commit 到 feature branch 後，**Orchestrator 觸發並行施工前**執行。
-
-**目的**:確保藍圖品質符合標準，禁止下游 Agent 開工後才發現設計缺陷。
-
-**審查清單**:
-
-| 檢查項目 | 檢查點 | 退回條件 |
-|---------|--------|---------|
-| **BDD Scenarios** | Given/When/Then 完整格式 | Missing Given、When、Then 之任一 |
-| | 場景編號規範（SC-XX-YY） | 編號不符 `bdd-conventions` 規範 |
-| | Happy Path + 異常/邊界情況 | 僅有 Happy Path，無異常、邊界、錯誤情況 |
-| | Then 描述足夠具體 | Then 內容模糊，無法推導 API Response |
-| **API Contract** | Request 結構明確 | 欄位型別、長度、必填性不明確 |
-| | Response 結構明確 | 欄位排序、型別、可空性不明確 |
-| | HTTP Method + 路由明確 | RESTful 用法錯誤（如用 GET 修改資料） |
-| | 狀態碼完整覆蓋 | 缺少 4xx 或 5xx 錯誤情況 |
-| | 錯誤訊息格式統一 | 格式不符既有 API 錯誤契約 |
-| **Schema** | 表名、欄位名規範 | 命名不符專案慣例 |
-| | 欄位型別合理 | 不合理的型別選擇（如 BIGINT 儲存電話號碼） |
-| | 欄位長度限制存在 | VARCHAR 缺少長度限制 |
-| | 索引策略明確 | Query 無對應索引支撑，性能風險 |
-| **安全設計** | 若勾選安全標籤，安全章節完整 | 信任邊界、認證、敏感資料、輸入驗證、操作防護任一缺失 |
-| | 敏感欄位遮蔽規則明確 | 遮蔽規則模糊 |
-| | 認證授權矩陣完整 | 端點權限要求不明確 |
-| **Agent Handoff Contract** | 前提假設明確 | 缺少或模糊 |
-| | 架構決策表完整 | 決策選擇、被拒方案、理由任一缺失 |
-| | ADR 引用正確 | 引用不存在的 ADR 或遺漏 ADR |
-| | 下游提醒具體 | 提醒內容模糊 |
-
-**退回機制**:
-- QA/QC 產出 Review Critique 檔案：`docs/reviews/{feature-name}-blueprint-review.md`
-- 詳細列出缺陷、溯源位置（檔案行號）、修正建議方向（不包含具體程式碼）
-- SA/SD 在**同一 feature branch** 修正後重新 commit
-- QA/QC 重新審查直至通過
-
-**審查通過條件**:
-- 所有檢查項目 ✅ 通過
-- 無遺漏的安全設計章節（若 Orchestrator 勾選安全標籤）
-- Agent Handoff Contract 格式正確無誤
-- BDD 推導的 API Contract 與技術藍圖 API 規格一致
-
-**通過後流程**:
-- QA/QC 更新 Review Critique 檔案，標記「✅ 藍圖審查通過，可進行並行施工」
-- Orchestrator 確認通過後，建立 worktree、分派開發層 Agent 開工
-
-> 📖 **相關 Skill**：詳見 ADR-002-qa-qc-blueprint-review-gate.md 與 `.github/skills/bdd-conventions/SKILL.md`
 
 ## 平行施工規則
 
