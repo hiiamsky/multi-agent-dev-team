@@ -1,7 +1,7 @@
 # Pilot 基線量測（Phase T0）
 
-> Pilot feature：ADR-000-template dry-run（依 ADR-001 §決策決定使用此 dry-run 案例）
-> 對應 Gherkin：`refactor/docs/specs/dry-run-adr-template.feature`
+> Pilot feature：ADR-000-template dry-run（依 ADR-003 §決策決定使用此 dry-run 案例）
+> 對應 Gherkin：`docs/specs/dry-run-adr-template.feature`
 > 量測日期：2026-05-01（基線首次填入）
 
 ---
@@ -35,7 +35,7 @@
 
 ## 3. 重構各 Phase 完成後的對照數據
 
-> 每個 Phase 完成後，重跑同一流程並填入下表。任何指標反向惡化即觸發該 Phase rollback（依 `agent-system-refactor-plan-final.md` §5）。
+> 每個 Phase 完成後，重跑同一流程並填入下表。任何指標反向惡化即觸發該 Phase rollback（依 ADR-003 §後果）。
 
 | 指標 | Baseline | Phase 1 後 | Phase 2 後 | Phase 3 後 | Phase 4 後 | Phase 5 後 | 短期目標 | 長期目標 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -48,8 +48,8 @@
 
 若以下任一條件命中，本 dry-run 策略需回頭重新評估：
 
-1. **基線量測無法在 1 週內完成**（找不到合適的人類 dry-run 執行者）→ 暫停重構，回 ADR-001 重新討論。
-2. **第一次 dry-run 結果顯示 token 消耗已低於 5 萬**（代表現況其實沒那麼糟，「Simplify 違反」的判斷需修正）→ 回 ADR-001 §背景修正診斷依據。
+1. **基線量測無法在 1 週內完成**（找不到合適的人類 dry-run 執行者）→ 暫停重構，回 ADR-003 重新討論。
+2. **第一次 dry-run 結果顯示 token 消耗已低於 5 萬**（代表現況其實沒那麼糟，「Simplify 違反」的判斷需修正）→ 回 ADR-003 §背景修正診斷依據。
 3. **任何 Phase 完成後 token 消耗反向惡化超過 10%** → 該 Phase 立即 rollback，並更新本檔記錄原因。
 
 ## 5. 信心評估

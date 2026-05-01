@@ -128,7 +128,7 @@ QA/QC 在整合驗證階段執行 coverage checker，並在 `docs/reviews/{featu
 ## 六、Phase 5 推廣計畫
 
 ### Phase 5.0 — Pilot 驗證（已完成於 Phase T0）
-- ADR-000-template dry-run 案例已建立 `.feature`（`refactor/docs/specs/dry-run-adr-template.feature`）。
+- ADR-000-template dry-run 案例已建立 `.feature`（`docs/specs/dry-run-adr-template.feature`）。
 - 信心 6/10：純文件流程的 token 量測模式可能與真實 feature 不同，需第 2 個 pilot 交叉驗證。
 
 ### Phase 5.1 — 第 2 個 Pilot（真實 feature）
@@ -148,7 +148,7 @@ QA/QC 在整合驗證階段執行 coverage checker，並在 `docs/reviews/{featu
 - 若 CI 不通過 → PR fail，無法 merge。
 
 ### 退場條件
-- Phase 5.1 第 2 個 pilot 顯示 token / 時間 / 退回任一項反向惡化超過 10% → 立即 rollback 並更新 ADR-001。
+- Phase 5.1 第 2 個 pilot 顯示 token / 時間 / 退回任一項反向惡化超過 10% → 立即 rollback 並更新 ADR-003。
 - SA/SD 反映「.feature 產出成本超過效益」→ 暫停 Phase 5.2，回頭評估。
 
 ---

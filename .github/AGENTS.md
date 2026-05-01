@@ -145,7 +145,7 @@ project-root/
 4. **Secure By Default** — 安全左移（每個 Agent 在其階段執行對應安全實踐）；未明確標註為公開的端點一律要求認證；機敏資訊零硬編碼。
 5. **Skill As Authority** — 所有規則的權威來源為對應 skill；本文件與 agent 檔案中的摘要僅為導航提示，技術細節以 skill 為準。
 
-> 原 11 條全域原則的合併對應表見 `refactor/docs/baseline.md`。
+> 原 11 條全域原則的合併對應表見 `docs/baseline.md`。
 
 ## SSDLC 對照（摘要）
 

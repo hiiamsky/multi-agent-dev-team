@@ -1,6 +1,6 @@
 # Phase T0 — Dry-Run Pilot Feature
 #
-# 用途：本 .feature 是 ADR-001 §Phase T0 規定的「會失敗的成功標準」。
+# 用途：本 .feature 是 ADR-003 §Phase T0 規定的「會失敗的成功標準」。
 # 它假設未來會有一個 Agent 流程「依 ADR-000-template 產出一份新 ADR」，
 # 透過 Gherkin 的 Given/When/Then 把這個流程的成功標準鎖在這裡。
 #
@@ -8,7 +8,7 @@
 # - 行為穩定：ADR-000-template 結構已固定，不會因業務需求變動。
 # - 跨域少：純文件流程，不涉及 src/ db/ tests/。
 # - 無安全標籤：純治理變更，不觸發 OWASP 全覆蓋。
-# - 對應到本次重構自身：產出 ADR-001 即為這個流程的真實首次執行。
+# - 對應到本次重構自身：產出 ADR-003 即為這個流程的真實首次執行。
 #
 # 預期狀態：本 .feature 在重構前**會失敗**，因為現行流程沒有自動化驗證。
 # Phase 5 coverage checker 完成後，將由 Playwright generator 自動產出 .spec.ts 並通過此測試。
@@ -58,7 +58,7 @@ Feature: 依 ADR-000-template 產出新 ADR
   Scenario: SC-T0-04 — 完整流程 token 消耗應記錄為基線
     Given 重構前的現行 governance（AGENTS.md 671 行）
     When 完整跑一次 SC-T0-01 的流程（從需求 → ADR commit）
-    Then 流程消耗的 token 數記錄於 `refactor/docs/baseline-pilot.md` 表格
+    Then 流程消耗的 token 數記錄於 `docs/baseline-pilot.md` 表格
     And 流程耗時記錄於同一表格
     And QA/QC 退回次數記錄於同一表格
     # 此 Scenario 的 Then 在 Phase 5 coverage checker 接入 token meter 後才能自動驗證
@@ -68,4 +68,4 @@ Feature: 依 ADR-000-template 產出新 ADR
   # SC-T0-01 → tests/e2e/adr-template-dry-run.spec.ts test('[SC-T0-01] ...')
   # SC-T0-02 → tests/e2e/adr-template-dry-run.spec.ts test('[SC-T0-02] ...')
   # SC-T0-03 → tests/e2e/adr-template-dry-run.spec.ts test('[SC-T0-03] ...')
-  # SC-T0-04 → 量測腳本 refactor/scripts/measure-baseline.sh（Phase 5 規劃）
+  # SC-T0-04 → 量測腳本 scripts/measure-baseline.sh（Phase 5 規劃）

@@ -78,7 +78,7 @@ when_to_use: Orchestrator 對人類提問前；SA/SD 退回需求時的對話；
 
 ## 五、何時不該觸發本 skill（避免濫用）
 
-依 `agent-system-refactor-plan-final.md` §3 Ask 原則：**Ask 服務於 Test，當成功標準（`.feature`）已明確時不必提問**。
+依 ADR-003 §決策 Ask 原則：**Ask 服務於 Test，當成功標準（`.feature`）已明確時不必提問**。
 
 以下情況 agent **不得**觸發本 skill，應自行決策：
 

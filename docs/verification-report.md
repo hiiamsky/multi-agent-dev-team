@@ -1,8 +1,8 @@
 # 重構驗證報告
 
 > 驗證日期：2026-05-01
-> 驗證對象：`refactor/` 資料夾全部產出
-> 驗證依據：`agent-system-refactor-plan-final.md` §6 KPI + ADR-001
+> 驗證對象：`.github/` 與 `docs/` 全部重構產出
+> 驗證依據：ADR-003 §決策 KPI
 
 ---
 
@@ -10,7 +10,7 @@
 
 | 檔案 | 重構後行數 | 計畫上限 | 結果 |
 |---|---:|---:|---|
-| `refactor/.github/AGENTS.md` | 201 | ≤ 250（短期）/ ≤ 180（長期） | ✅ PASS（短期目標達標；長期目標尚有 21 行緩衝待後續優化） |
+| `.github/AGENTS.md` | 201 | ≤ 250（短期）/ ≤ 180（長期） | ✅ PASS（短期目標達標；長期目標尚有 21 行緩衝待後續優化） |
 | `orchestrator.agent.md` | 132 | ≤ 220 | ✅ PASS |
 | `sa-sd.agent.md` | 105 | ≤ 180 | ✅ PASS |
 | `qa-qc.agent.md` | 146 | ≤ 180 | ✅ PASS |
@@ -28,7 +28,7 @@
 ### 2.1 Agent 檔案不再以 AGENTS.md 為詳細規則來源
 
 ```
-$ grep -rn "依 AGENTS.md §" refactor/.github/agents/
+$ grep -rn "依 AGENTS.md §" .github/agents/
 ✅ 通過 — 無引用
 ```
 
@@ -64,7 +64,7 @@ $ grep -rn "依 AGENTS.md §" refactor/.github/agents/
 
 | Phase | 預期產出 | 實際產出 | 結果 |
 |---|---|---|---|
-| Phase 0 | ADR-001 + baseline.md | `docs/specs/adr/ADR-001-...md`、`docs/baseline.md` | ✅ |
+| Phase 0 | ADR-003 + baseline.md | `docs/specs/adr/ADR-003-agent-governance-simplification.md`、`docs/baseline.md` | ✅ |
 | Phase T0 | dry-run `.feature` + baseline-pilot.md | `docs/specs/dry-run-adr-template.feature`、`docs/baseline-pilot.md` | ✅ |
 | Phase 1 | `AGENTS.md` ≤ 250 行 | 201 行 | ✅ |
 | Phase 2 | 3 個 SSOT skill | `blueprint-review-gate` / `dotnet-skill-routing` / `human-decision-protocol` | ✅ |
@@ -72,7 +72,7 @@ $ grep -rn "依 AGENTS.md §" refactor/.github/agents/
 | Phase 4 | `agent-handoff-contract` v2 含 Required Skills | 已升級，加入 Required / Conditional / Not Applicable 三類 | ✅ |
 | Phase 5 | Coverage checker 設計 + 推廣計畫 | `bdd-coverage-checker/SKILL.md` 含 5.0–5.3 推廣路徑 | ✅ |
 
-## 5. 紅線守住（依 ADR-001 §決策 + 計畫 §7 不做清單）
+## 5. 紅線守住（依 ADR-003 §決策 + 計畫 §7 不做清單）
 
 | 紅線 | 是否守住 | 證據 |
 |---|---|---|
@@ -88,9 +88,9 @@ $ grep -rn "依 AGENTS.md §" refactor/.github/agents/
 ## 6. 已知限制與後續行動
 
 ### 6.1 量測基線尚未填入
-- `refactor/docs/baseline-pilot.md` 的 token / 時間 / 退回次數欄位仍為 `_待填_`。
+- `docs/baseline-pilot.md` 的 token / 時間 / 退回次數欄位仍為 `_待填_`。
 - **後續行動**：人類於 1 週內執行一次 ADR-000-template dry-run，填入第 1 次量測；再做第 2 次以取平均。
-- 若無法在 1 週內完成 → 觸發 baseline-pilot.md §4 退場條件 1，暫停後續推廣並回 ADR-001 重新討論。
+- 若無法在 1 週內完成 → 觸發 baseline-pilot.md §4 退場條件 1，暫停後續推廣並回 ADR-003 重新討論。
 
 ### 6.2 真實 feature pilot 尚未執行
 - `bdd-coverage-checker/SKILL.md` Phase 5.1 規劃的「真實 feature pilot」尚未啟動。
@@ -114,13 +114,12 @@ $ grep -rn "依 AGENTS.md §" refactor/.github/agents/
 | 「紅線守住」 | 9/10 | 8 條紅線逐項驗證 |
 | 「Phase 4 Required Skills 策略可行」 | 7/10 | < 7 邊界：依賴 SA/SD 判斷準確性；待 Phase T0 量測結果驗證 |
 | 「Phase 5 三方對齊機制能降低退回率」 | 6/10 | < 7 邊界：尚未經真實 feature 驗證；理論成立但實務成本未知 |
-| 整體重構品質 | 8/10 | 結構清晰、引用乾淨；唯一限制是量測基線待填，但這屬於「ADR-001 §決策決定的人類執行步驟」非本次 Claude 範圍 |
+| 整體重構品質 | 8/10 | 結構清晰、引用乾淨；唯一限制是量測基線待填，但這屬於「ADR-003 §決策決定的人類執行步驟」非本次 Claude 範圍 |
 
 ---
 
 ## Sources
 
-- [agent-system-refactor-plan-final.md](computer:///Users/skyhsieh/sky/skylab/product/MulAgentDocument/agent-system-refactor-plan-final.md)
-- [ADR-001](computer:///Users/skyhsieh/sky/skylab/product/MulAgentDocument/refactor/docs/specs/adr/ADR-001-agent-governance-simplification.md)
-- [baseline.md](computer:///Users/skyhsieh/sky/skylab/product/MulAgentDocument/refactor/docs/baseline.md)
-- [baseline-pilot.md](computer:///Users/skyhsieh/sky/skylab/product/MulAgentDocument/refactor/docs/baseline-pilot.md)
+- [ADR-003](docs/specs/adr/ADR-003-agent-governance-simplification.md)
+- [baseline.md](docs/baseline.md)
+- [baseline-pilot.md](docs/baseline-pilot.md)
