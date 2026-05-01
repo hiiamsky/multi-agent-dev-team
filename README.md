@@ -74,9 +74,9 @@ graph LR
 | :--- | :--- | :--- |
 | **協作規範** | [`AGENTS.md`](.github/AGENTS.md) | 團隊治理、路由規則與退回機制 SSOT |
 | **技術藍圖** | [`docs/specs/`](docs/specs/) | SA/SD 產出的規格設計文件 (Blueprints) |
-| **品質報告** | [`docs/reviews/`](docs/reviews/) | QA/QC 的安全性與整合驗證結果 |
-| **架構決策** | [`docs/adr/`](docs/adr/) | 架構決策紀錄 (Architecture Decision Records) |
-| **安全基準** | `[Security Baseline](.github/skills/security-baseline)` | SSDLC 實作標準與技能庫 |
+| **品質報告** | [`docs/code-review-report.md`](docs/code-review-report.md) · [`docs/verification-report.md`](docs/verification-report.md) | QA/QC 的安全性與整合驗證結果 |
+| **架構決策** | [`docs/specs/adr/`](docs/specs/adr/) | 架構決策紀錄 (Architecture Decision Records) |
+| **安全基準** | [Security Baseline](.github/skills/security-baseline/) | SSDLC 實作標準與技能庫 |
 
 ---
 
@@ -87,8 +87,9 @@ multi-agent-dev-team/
 ├── VeggieAlly/          # 產品專案實作 (Product Implementation)
 ├── docs/
 │   ├── specs/           # 技術規格藍圖 (SA/SD Blueprints)
-│   ├── reviews/         # 品質審查報告 (QA/QC Reviews)
-│   └── adr/             # 架構決策紀錄 (ADR)
+│   │   └── adr/         # 架構決策紀錄 (ADR)
+│   ├── code-review-report.md   # 程式碼審查報告
+│   └── verification-report.md  # 整合驗證報告
 ├── scripts/             # 自動化維運與管理腳本
 └── .github/
     ├── AGENTS.md        # 團隊協作與治理規範
