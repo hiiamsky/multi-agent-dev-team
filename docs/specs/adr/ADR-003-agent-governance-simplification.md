@@ -1,4 +1,4 @@
-# ADR-001：Multi-Agent Governance 簡化重構
+# ADR-003：Multi-Agent Governance 簡化重構
 
 - **狀態**：提案中
 - **日期**：2026-05-01
